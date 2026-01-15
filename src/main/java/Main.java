@@ -2,7 +2,10 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        CommandParser commandParser = new CommandParserImp(new CommandRegistry());
+        Command commandR = new Command("exit",()->System.exit(0));
+        CommandRegistry commandRegistry = new CommandRegistry();
+        commandRegistry.register(commandR);
+        CommandParser commandParser = new CommandParserImp(commandRegistry);
         System.out.print("$ ");
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {

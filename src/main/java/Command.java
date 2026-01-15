@@ -1,10 +1,12 @@
 public class Command {
     String command;
-    public Command(String command) {
+    CommandOperation operation;
+    public Command(String command, CommandOperation operation) {
+        this.operation = operation;
         this.command = command;
     }
     public void execute() {
-        System.out.println("Executing command: " + command);
+        operation.operate();
     }
     @Override
     public boolean equals(Object obj) {
