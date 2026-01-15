@@ -7,6 +7,6 @@ public class CommandParserImp implements CommandParser{
     }
     @Override
     public Command parse(String input) {
-        return commandRegistry.getCommand(input);
+        return commandRegistry.getCommand(input.split(" ")[0]);
     }
 }

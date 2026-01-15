@@ -1,4 +1,4 @@
 @FunctionalInterface
 public interface CommandOperation {
-    void operate();
+    void operate(String ... args);
 }

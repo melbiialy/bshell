@@ -2,8 +2,12 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        Command commandR = new Command("exit",()->System.exit(0));
+        Command commandR = new Command("exit",(a)->System.exit(0));
+        Command echo = new Command("echo",(a)->{
+            System.out.println(String.join(" ",a).substring(4));
+        });
         CommandRegistry commandRegistry = new CommandRegistry();
+        commandRegistry.register(echo);
         commandRegistry.register(commandR);
         CommandParser commandParser = new CommandParserImp(commandRegistry);
         System.out.print("$ ");
@@ -18,7 +22,7 @@ public class Main {
                 System.out.print("$ ");
                 continue;
             }
-            command.execute();
+            command.execute(input.split(" "));
             System.out.print("$ ");
         }
 
