@@ -4,7 +4,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Command commandR = new Command("exit",(a)->System.exit(0));
         Command echo = new Command("echo",(a)->{
-            System.out.println(String.join(" ",a).substring(4));
+            System.out.println(String.join(" ",a).substring(4).trim());
         });
         CommandRegistry commandRegistry = new CommandRegistry();
         commandRegistry.register(echo);
