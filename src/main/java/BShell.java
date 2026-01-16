@@ -1,3 +1,4 @@
+import java.beans.BeanDescriptor;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,19 +17,17 @@ public class BShell {
     public Path getPath() {
         return path;
     }
-    public static void moveTo(Path path) {
-        if (Files.exists(path)&&Files.isDirectory(path)) {
-            BShell.path = path;
-        }else {
-            throw new NoSuchDirectory(path.toString() + ": No such file or directory");
+    public static void moveTo(String directory) {
+        Path newPath = path.resolve(directory).normalize();
+        if (Files.exists(newPath) && Files.isDirectory(newPath)) {
+            path = newPath;
+        } else {
+            System.out.println("cd: " + directory + ": No such file or directory");
         }
+
+
     }
-    public void moveForward(String forwardDirectory) {
-        moveTo(path.resolve(forwardDirectory));
-    }
-    public void moveBackward(){
-        moveTo(path.resolve(".."));
-    }
+
     public void start() throws IOException {
 //        System.out.println("Welcome to BShell");
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));

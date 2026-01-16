@@ -45,7 +45,7 @@ public class CommandRegistry {
                 System.out.println("cd: missing operand");
                 return;
             }
-            BShell.moveTo(BShell.path.resolve(a[1]));
+            BShell.moveTo(a[1]);
         });
         commandRegistry.register(cd);
         commandRegistry.register(exit);
