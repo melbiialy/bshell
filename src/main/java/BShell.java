@@ -18,6 +18,11 @@ public class BShell {
         return path;
     }
     public static void moveTo(String directory) {
+        if (directory.equals("~")) {
+            directory = System.getProperty("user.home");
+            BShell.path = Path.of(directory);
+            return;
+        }
         Path newPath = path.resolve(directory).normalize();
         if (Files.exists(newPath) && Files.isDirectory(newPath)) {
             path = newPath;
