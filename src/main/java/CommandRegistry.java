@@ -24,11 +24,14 @@ public class CommandRegistry {
             Process process = Runtime.getRuntime().exec(new String[]{
                     "which", commandName
             });
-            BufferedReader processReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            System.out.println( commandName +" is " + processReader.readLine());
             if (commandRegistry.contains(commandName)) {
                 System.out.println(commandName + " is a shell builtin");
                 return;
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
             }
         });
         Command pwd = new Command("pwd",(a)->{

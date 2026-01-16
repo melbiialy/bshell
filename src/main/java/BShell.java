@@ -38,6 +38,7 @@ public class BShell {
             Command command;
             try {
                 command = commandParser.parse(input);
+                command.execute(input.split(" "));
             } catch (CommandNotFound e) {
                 Process process = Runtime.getRuntime().exec(new String[]{"which",input.split(" ")[0]});
                 BufferedReader processReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -55,7 +56,6 @@ public class BShell {
                 System.out.print("$ ");
                 continue;
             }
-            command.execute(input.split(" "));
             System.out.print("$ ");
 
 
