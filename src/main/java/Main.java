@@ -20,14 +20,14 @@ public class Main {
             Process process = Runtime.getRuntime().exec(new String[]{
                     "which",commandName
             });
+            if (commandRegistry.contains(commandName)) {
+                System.out.println(commandName + " is a shell builtin");
+                return;
+            }
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = reader.readLine();
             if (line != null){
                 System.out.println(commandName + " is " + line);
-                return;
-            }
-            if (commandRegistry.contains(commandName)) {
-                System.out.println(commandName + " is a shell builtin");
             }
             else {
                 System.out.println(commandName + ": not found");
