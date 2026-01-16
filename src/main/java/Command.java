@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ public class Command {
         this.command = command;
         subCommands = new HashMap<>();
     }
-    public void execute(String ... args) {
+    public void execute(String ... args) throws IOException {
         operation.operate(args);
     }
     public void addSubCommand(int index, Command command) {
