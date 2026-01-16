@@ -30,7 +30,7 @@ public class BShell {
         this.moveTo(path.resolve(".."));
     }
     public void start() throws IOException {
-        System.out.println("Welcome to BShell");
+//        System.out.println("Welcome to BShell");
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String input;
         System.out.print("$ ");
