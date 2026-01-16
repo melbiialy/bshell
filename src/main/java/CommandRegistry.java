@@ -40,6 +40,14 @@ public class CommandRegistry {
         Command pwd = new Command("pwd",(a)->{
             System.out.println(BShell.path.toAbsolutePath().toString());
         });
+        Command cd = new Command("cd",(a)->{
+            if (a.length < 2) {
+                System.out.println("cd: missing operand");
+                return;
+            }
+            BShell.moveTo(BShell.path.resolve(a[1]));
+        });
+        commandRegistry.register(cd);
         commandRegistry.register(exit);
         commandRegistry.register(echo);
         commandRegistry.register(type);

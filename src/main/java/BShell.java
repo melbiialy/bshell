@@ -16,18 +16,18 @@ public class BShell {
     public Path getPath() {
         return path;
     }
-    public void moveTo(Path path) {
+    public static void moveTo(Path path) {
         if (Files.exists(path)&&Files.isDirectory(path)) {
             BShell.path = path;
         }else {
-            throw new NoSuchDirectory("No such directory "+path.toString());
+            throw new NoSuchDirectory(path.toString() + ": No such file or directory");
         }
     }
     public void moveForward(String forwardDirectory) {
-        this.moveTo(path.resolve(forwardDirectory));
+        moveTo(path.resolve(forwardDirectory));
     }
     public void moveBackward(){
-        this.moveTo(path.resolve(".."));
+        moveTo(path.resolve(".."));
     }
     public void start() throws IOException {
 //        System.out.println("Welcome to BShell");
@@ -55,6 +55,8 @@ public class BShell {
                 }
                 System.out.print("$ ");
                 continue;
+            } catch (NoSuchDirectory e) {
+                System.out.println(e.getMessage());
             }
             System.out.print("$ ");
 
