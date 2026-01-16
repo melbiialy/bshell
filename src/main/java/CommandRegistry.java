@@ -29,10 +29,13 @@ public class CommandRegistry {
                 return;
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
+            String line = reader.readLine();
+            if (line != null) {
                 System.out.println(line);
+            }else {
+                System.out.println(commandName + ": not found");
             }
+
         });
         Command pwd = new Command("pwd",(a)->{
             System.out.println(BShell.path.toAbsolutePath().toString());
