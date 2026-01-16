@@ -16,7 +16,7 @@ public class Main {
             }
             String commandName = a[1];
             if (commandRegistry.contains(commandName)) {
-                System.out.println(commandName + " is a shell built-in");
+                System.out.println(commandName + " is a shell builtin");
             }
             else {
                 System.out.println(commandName + ":  not found");
