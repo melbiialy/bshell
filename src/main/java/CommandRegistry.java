@@ -14,7 +14,13 @@ public class CommandRegistry {
         CommandRegistry commandRegistry = new CommandRegistry();
         Command exit = new Command("exit",(a)->System.exit(0));
         Command echo = new Command("echo",(a)->{
-            System.out.println(String.join(" ",a).substring(4).trim());});
+
+        for (String s : a) {
+            if (s == null) continue;
+            System.out.print(s + " ");
+        }
+        System.out.println();
+        });
         Command type = new Command("type",(a)-> {
             if (a.length < 2) {
                 System.out.println("type: missing operand");
