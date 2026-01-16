@@ -7,6 +7,36 @@ public class CommandRegistry {
     public CommandRegistry() {
         this.commands = new ArrayList<>();
     }
+
+    public static CommandRegistry registerBuiltinCommands() {
+        CommandRegistry commandRegistry = new CommandRegistry();
+        Command exit = new Command("exit",(a)->System.exit(0));
+        Command echo = new Command("echo",(a)->{
+            System.out.println(String.join(" ",a).substring(4).trim());});
+        Command type = new Command("type",(a)-> {
+            if (a.length < 2) {
+                System.out.println("type: missing operand");
+                return;
+            }
+            String commandName = a[1];
+            Process process = Runtime.getRuntime().exec(new String[]{
+                    "which", commandName
+            });
+            if (commandRegistry.contains(commandName)) {
+                System.out.println(commandName + " is a shell builtin");
+                return;
+            }
+        });
+        Command pwd = new Command("pwd",(a)->{
+            System.out.println(BShell.path.toAbsolutePath().toString());
+        });
+        commandRegistry.register(exit);
+        commandRegistry.register(echo);
+        commandRegistry.register(type);
+        commandRegistry.register(pwd);
+        return commandRegistry;
+    }
+
     public void register(Command command) {
         commands.add(command);
     }
