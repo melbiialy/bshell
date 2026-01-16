@@ -43,7 +43,19 @@ public class Main {
             try {
                 command = commandParser.parse(input);
             } catch (CommandNotFound e) {
-                System.out.println(e.getMessage());
+                Process process = Runtime.getRuntime().exec(new String[]{"which",input.split(" ")[0]});
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line = reader.readLine();
+                if (line != null) {
+                    Process execProcess = Runtime.getRuntime().exec(input);
+                    BufferedReader execReader = new BufferedReader(new InputStreamReader(execProcess.getInputStream()));
+                    String execLine;
+                    while ((execLine = execReader.readLine()) != null) {
+                        System.out.println(execLine);
+                    }
+                } else {
+                    System.out.println(input.split(" ")[0] + ": command not found");
+                }
                 System.out.print("$ ");
                 continue;
             }
