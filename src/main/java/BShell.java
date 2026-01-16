@@ -19,7 +19,7 @@ public class BShell {
     }
     public static void moveTo(String directory) {
         if (directory.equals("~")) {
-            directory = System.getProperty("user.home");
+            directory = System.getenv("HOME");
             BShell.path = Path.of(directory);
             return;
         }
