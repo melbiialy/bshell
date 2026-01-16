@@ -9,6 +9,20 @@ public class Main {
         CommandRegistry commandRegistry = new CommandRegistry();
         commandRegistry.register(echo);
         commandRegistry.register(commandR);
+        Command type = new Command("type",(a)->{
+            if (a.length < 2) {
+                System.out.println("type: missing operand");
+                return;
+            }
+            String commandName = a[1];
+            if (commandRegistry.contains(commandName)) {
+                System.out.println(commandName + " is a shell built-in");
+            }
+            else {
+                System.out.println(commandName + ":  not found");
+            }
+        });
+        commandRegistry.register(type);
         CommandParser commandParser = new CommandParserImp(commandRegistry);
         System.out.print("$ ");
         Scanner scanner = new Scanner(System.in);

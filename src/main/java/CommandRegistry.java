@@ -13,6 +13,9 @@ public class CommandRegistry {
     public void unregister(Command command) {
         commands.remove(command);
     }
+    public boolean contains(String commandName) {
+        return commands.stream().anyMatch(command -> command.command.equals(commandName));
+    }
     public Command getCommand(String commandName) {
         for (Command command : commands) {
             if (command.command.equals(commandName)) {
