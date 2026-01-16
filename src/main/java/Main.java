@@ -19,7 +19,7 @@ public class Main {
                 System.out.println(commandName + " is a shell builtin");
             }
             else {
-                System.out.println(commandName + ":  not found");
+                System.out.println(commandName + ": not found");
             }
         });
         commandRegistry.register(type);
