@@ -44,6 +44,7 @@ public class Tokenizer {
             tokenObj.setDoubleQuoted(true);
             token = token.substring(1);
             token = token.substring(0, token.length()-1);
+            token = token.replaceAll("\"", "");
         }
         else {
             tokenObj.setQuoted(false);
