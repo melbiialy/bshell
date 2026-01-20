@@ -43,6 +43,8 @@ public class Tokenizer {
             tokenObj.setQuoted(false);
             tokenObj.setDoubleQuoted(false);
         }
+        token = token.replaceAll("'", "");
+        token = token.replaceAll("\"", "");
         tokenObj.setToken(token);
         return tokenObj;
     }
