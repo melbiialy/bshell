@@ -14,7 +14,7 @@ public class Tokenizer {
             if (c == '\''&&!inDoubleQuotes) {
                 inQuotes = !inQuotes;
             }
-            if (c == '"'&&!inQuotes) {
+            if (c == '"') {
                 inDoubleQuotes = !inDoubleQuotes;
             }
             if (c == ' ' && !(inQuotes || inDoubleQuotes)){
@@ -37,16 +37,21 @@ public class Tokenizer {
         if (token.charAt(0) == '\''){
             tokenObj.setQuoted(true);
             tokenObj.setDoubleQuoted(false);
+            token = token.substring(1);
+            token = token.substring(0, token.length()-1);
         }else if (token.charAt(0) == '"'){
             tokenObj.setQuoted(false);
             tokenObj.setDoubleQuoted(true);
+            token = token.substring(1);
+            token = token.substring(0, token.length()-1);
         }
         else {
             tokenObj.setQuoted(false);
             tokenObj.setDoubleQuoted(false);
+            token = token.replaceAll("\"", "");
+
         }
-        token = token.replaceAll("'", "");
-        token = token.replaceAll("\"", "");
+
         tokenObj.setToken(token);
         return tokenObj;
     }
