@@ -16,7 +16,7 @@ public class CommandRunner {
         }
         try {
             ProcessBuilder pb = new ProcessBuilder(tokens.stream().map(Token::getToken).toArray(String[]::new));
-            pb.directory(BShell.path.toFile());
+            pb.directory(BShell.path.getPath().toFile());
             pb.inheritIO();
             Process process = pb.start();
             int exitCode = process.waitFor();

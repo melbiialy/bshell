@@ -44,14 +44,14 @@ public class CommandRegistry {
 
         });
         Command pwd = new Command("pwd",(a)->{
-            System.out.println(BShell.path.toAbsolutePath().toString());
+            System.out.println(BShell.path.getPath().toAbsolutePath().toString());
         });
         Command cd = new Command("cd",(a)->{
             if (a.length < 1) {
                 System.out.println("cd: missing operand");
                 return;
             }
-            BShell.moveTo(a[0]);
+            BShell.path.moveTo(a[0]);
         });
         commandRegistry.register(cd);
         commandRegistry.register(exit);
