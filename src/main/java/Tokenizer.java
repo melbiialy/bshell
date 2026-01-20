@@ -53,6 +53,7 @@ public class Tokenizer {
 
         }
 
+        token = token.replaceAll("''","");
         tokenObj.setToken(token);
         return tokenObj;
     }
