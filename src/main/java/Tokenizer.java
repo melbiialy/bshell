@@ -1,3 +1,4 @@
+import javax.swing.plaf.IconUIResource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,7 @@ public class Tokenizer {
         StringBuilder temp = new StringBuilder();
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
+            if (c==' '&& temp.isEmpty()) continue;
             if (c == '\'') {
                 inQuotes = !inQuotes;
             }
