@@ -45,7 +45,6 @@ public class BShell {
             input = reader.readLine();
             if (input == null) continue;
             List<Token> tokens = parser.parse(input);
-            System.out.println(tokens.getFirst().getToken());
             try {
                 commandRunner.run(tokens);
             }catch (Exception e){
