@@ -48,7 +48,7 @@ public class BShell {
             try {
                 commandRunner.run(tokens);
             }catch (Exception e){
-                System.out.println(e.getMessage());
+                System.out.println(tokens.getFirst().getToken() + ": " +e.getMessage());
             }
             System.out.print("$ ");
         }
