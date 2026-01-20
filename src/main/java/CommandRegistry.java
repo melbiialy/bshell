@@ -22,11 +22,11 @@ public class CommandRegistry {
         System.out.println();
         });
         Command type = new Command("type",(a)-> {
-            if (a.length < 2) {
+            if (a.length < 1) {
                 System.out.println("type: missing operand");
                 return;
             }
-            String commandName = a[1];
+            String commandName = a[0];
             Process process = Runtime.getRuntime().exec(new String[]{
                     "which", commandName
             });
@@ -47,11 +47,11 @@ public class CommandRegistry {
             System.out.println(BShell.path.toAbsolutePath().toString());
         });
         Command cd = new Command("cd",(a)->{
-            if (a.length < 2) {
+            if (a.length < 1) {
                 System.out.println("cd: missing operand");
                 return;
             }
-            BShell.moveTo(a[1]);
+            BShell.moveTo(a[0]);
         });
         commandRegistry.register(cd);
         commandRegistry.register(exit);
