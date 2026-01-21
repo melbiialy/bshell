@@ -46,7 +46,8 @@ public class CommandExecutor {
             Files.createDirectories(filePath.getParent());
 
 
-            Files.writeString(filePath, output.output()+ "\n",
+            Files.writeString(filePath, '\n'+output.output(),
+                    StandardOpenOption.CREATE,
                     StandardOpenOption.APPEND);
         }
         else {
