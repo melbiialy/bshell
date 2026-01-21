@@ -20,6 +20,7 @@ public class CommandRegistry {
         commands.put("pwd", new Pwd());
         commands.put("cd", new Cd());
         commands.put("type", new Type());
+        commands.put("exit", new Exit());
 
     }
 
