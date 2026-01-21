@@ -1,2 +1,4 @@
-public record RunResults(String output,String error) {
+package commandexecution;
+
+public record RunResults(String output, String error) {
 }

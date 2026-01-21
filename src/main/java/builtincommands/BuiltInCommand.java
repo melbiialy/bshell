@@ -7,6 +7,6 @@ import java.io.IOException;
 
 
 @FunctionalInterface
-public interface Command {
-    RunResults operate(String ... args) throws IOException;
+public interface BuiltInCommand {
+    RunResults operate(String ... args) throws IOException, InterruptedException;
 }

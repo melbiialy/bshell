@@ -1,4 +1,7 @@
-import commandexecution.RunResults;
+package commandexecution;
+
+import builtincommands.CommandRegistry;
+import exception.CommandNotFound;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,10 +13,10 @@ public class CommandRunner {
         this.commandRegistry = commandRegistry;
     }
 
-    public RunResults run(List<String > tokens) throws IOException {
-        if (commandRegistry.contains(tokens.getFirst())) {
+    public RunResults run(List<String > tokens) throws IOException, InterruptedException {
+        if (CommandRegistry.containsCommand(tokens.getFirst())) {
             String [] args = tokens.stream().skip(1).toArray(String[]::new);
-            return commandRegistry.getCommand(tokens.getFirst()).execute(args);
+            return commandRegistry.getCommand(tokens.getFirst()).operate(args);
         }
         try {
             ProcessBuilder pb = new ProcessBuilder(tokens);

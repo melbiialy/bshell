@@ -1,7 +1,11 @@
+package builtincommands;
+
+import commandexecution.RunResults;
+
 import java.io.IOException;
 
 
-public class EchoCommand implements CommandOperation{
+public class EchoCommand implements BuiltInCommand {
 
 
     @Override

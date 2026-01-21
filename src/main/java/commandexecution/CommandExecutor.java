@@ -1,4 +1,6 @@
-import commandexecution.RunResults;
+package commandexecution;
+
+import builtincommands.CommandRegistry;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,11 +12,11 @@ public class CommandExecutor {
     private final RedirectHandler redirectHandler;
 
     public CommandExecutor() {
-        this.commandRunner = new CommandRunner(CommandRegistry.registerBuiltinCommands());
+        this.commandRunner = new CommandRunner(new CommandRegistry());
         this.redirectHandler = new RedirectHandler();
     }
 
-    public void execute(List<Token> tokens) throws IOException {
+    public void execute(List<Token> tokens) throws IOException, InterruptedException {
         Command command = redirectHandler.handle(tokens);
         RunResults output = commandRunner.run(command.getTokens());
         if (!command.getRedirectTokens().isEmpty()) {

@@ -1,84 +1,31 @@
-import builtincommands.EchoCommand;
-import commandexecution.RunResults;
+package builtincommands;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import commandexecution.CommandExecutor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CommandRegistry {
+    private static Map<String, BuiltInCommand> commands;
 
-    List<CommandOld> commandOlds;
     public CommandRegistry() {
-        this.commandOlds = new ArrayList<>();
+        commands = new HashMap<>();
+        initRegistry();
     }
 
-    public static CommandRegistry registerBuiltinCommands() {
-        CommandRegistry commandRegistry = new CommandRegistry();
-        CommandOld exit = new CommandOld("exit",(a)->{
-            System.exit(0);
-            return new RunResults("","");
-        });
-        CommandOld echo = new CommandOld("echo",(a)->{return new EchoCommand().operate(a);
-        });
-        CommandOld type = new CommandOld("type",(a)-> {
-            if (a.length < 1) {
-                return new RunResults("type: type: missing operand","");
-
-            }
-            String commandName = a[0];
-            Process process = Runtime.getRuntime().exec(new String[]{
-                    "which", commandName
-            });
-            if (commandRegistry.contains(commandName)) {
-                return new RunResults(commandName+" is a shell builtin","");
-
-            }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line = reader.readLine();
-            if (line != null) {
-                return new RunResults(commandName+" is "+line,"");
-            }else {
-                return new RunResults(commandName+": not found","");
-            }
-
-        });
-        CommandOld pwd = new CommandOld("pwd",(a)->{
-            return new RunResults(BShell.path.getPath().toString(),"");
-        });
-        CommandOld cd = new CommandOld("cd",(a)->{
-            if (a.length < 1) {
-                return new RunResults("cd: missing operand","");
-            }
-            BShell.path.moveTo(a[0]);
-            return new RunResults("","");
-        });
-        commandRegistry.register(cd);
-        commandRegistry.register(exit);
-        commandRegistry.register(echo);
-        commandRegistry.register(type);
-        commandRegistry.register(pwd);
-        return commandRegistry;
+    public static boolean containsCommand(String commandName) {
+        return commands.containsKey(commandName);
     }
 
-    public void register(CommandOld commandOld) {
-        commandOlds.add(commandOld);
-    }
-    public void unregister(CommandOld commandOld) {
-        commandOlds.remove(commandOld);
-    }
-    public boolean contains(String commandName) {
-        return commandOlds.stream().anyMatch(command -> command.command.equals(commandName));
-    }
-    public CommandOld getCommand(String commandName) {
-        for (CommandOld commandOld : commandOlds) {
-            if (commandOld.command.equals(commandName)) {
-                return commandOld;
-            }
-        }
-        throw new CommandNotFound(commandName + ":" + " command not found");
+    private void initRegistry() {
+        commands.put("echo", new EchoCommand());
+        commands.put("pwd", new Pwd());
+        commands.put("cd", new Cd());
+        commands.put("type", new Type());
 
     }
 
-
+    public BuiltInCommand getCommand(String first) {
+        return commands.get(first);
+    }
 }
