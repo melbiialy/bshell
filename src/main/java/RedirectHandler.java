@@ -12,7 +12,9 @@ public class RedirectHandler {
                 flag = true;
                 String temp = token.getToken().substring(0, token.getToken().indexOf("1>"));
                 temp = temp.trim();
-                executionTokens.add(temp);
+                if (!temp.isEmpty()) {
+                    executionTokens.add(temp);
+                }
                 String fileName = token.getToken().substring(token.getToken().indexOf("1>")+2);
                 fileName = fileName.trim();
                 if (fileName.isEmpty()) continue;
@@ -23,7 +25,9 @@ public class RedirectHandler {
                 flag = true;
                 String temp = token.getToken().substring(0, token.getToken().indexOf(">"));
                 temp = temp.trim();
-                executionTokens.add(temp);
+                if (!temp.isEmpty()) {
+                    executionTokens.add(temp);
+                }
                 String fileName = token.getToken().substring(token.getToken().indexOf(">")+1);
                 fileName = fileName.trim();
                 if (fileName.isEmpty()) continue;

@@ -21,10 +21,16 @@ public class CommandRunner {
             Process process = pb.start();
             process.waitFor();
 
-            return new String(
+            String out = new String(
                     process.getInputStream().readAllBytes(),
                     StandardCharsets.UTF_8
             );
+            String err = new String(
+                    process.getErrorStream().readAllBytes(),
+                    StandardCharsets.UTF_8
+            );
+            if (!err.isEmpty()) throw new NoSuchDirectory(err);
+            return out;
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
