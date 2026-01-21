@@ -20,7 +20,7 @@ public class CommandExecutor {
         Command command = redirectHandler.handle(tokens);
         RunResults output = commandRunner.run(command.getTokens());
 
-        if (!command.getRedirectTokens().isEmpty()&&command.getReturnCode()!=1) {
+        if (!command.getRedirectTokens().isEmpty()&&command.getReturnCode()!=2) {
             String fileName = command.getRedirectTokens().getFirst();
             Path filePath = BShell.path.getPath().resolve(fileName);
             Files.writeString(filePath, output.output());
