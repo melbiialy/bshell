@@ -26,7 +26,7 @@ public class Tokenizer {
 
                 if (c == '"' && !inSingleQuotes) {
                     inDoubleQuotes = !inDoubleQuotes;
-                    temp.append(c);
+//                    temp.append(c);
                     continue;
                 }
 
@@ -64,7 +64,7 @@ public class Tokenizer {
         } else if (value.startsWith("\"") && value.endsWith("\"") && value.length() > 1) {
             token.setQuoted(false);
             token.setDoubleQuoted(true);
-            value = value.substring(1, value.length() - 1);
+//            value = value.substring(1, value.length() - 1);
 
         } else {
             token.setQuoted(false);
