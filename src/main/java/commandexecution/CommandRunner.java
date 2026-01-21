@@ -1,6 +1,7 @@
+import commandexecution.RunResults;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 
 public class CommandRunner {
