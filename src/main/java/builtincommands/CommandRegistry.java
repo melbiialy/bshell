@@ -21,7 +21,6 @@ public class CommandRegistry {
         commands.put("cd", new Cd());
         commands.put("type", new Type());
         commands.put("exit", new Exit());
-
     }
 
     public BuiltInCommand getCommand(String first) {

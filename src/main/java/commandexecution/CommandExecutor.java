@@ -20,6 +20,7 @@ public class CommandExecutor {
         Command command = redirectHandler.handle(tokens);
         RunResults output = commandRunner.run(command.getTokens());
 
+
         if (!command.getRedirectTokens().isEmpty()&&command.getReturnCode()!=2) {
             String fileName = command.getRedirectTokens().getFirst();
             Path filePath = BShell.path.getPath().resolve(fileName);
@@ -36,6 +37,12 @@ public class CommandExecutor {
                 System.out.println(output.output().trim());
             }
 
+        }
+        else if(command.getReturnCode()==3){
+            String fileName = command.getRedirectTokens().getFirst();
+            Path filePath = BShell.path.getPath().resolve(fileName);
+            String content = Files.readString(filePath);
+            Files.writeString(filePath, content + output.output());
         }
         else {
             if (!output.output().isEmpty()) {

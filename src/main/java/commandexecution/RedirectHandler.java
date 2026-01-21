@@ -11,6 +11,23 @@ public class RedirectHandler {
         boolean flag = false;
         int i = 0;
         for (Token token : tokens) {
+            if (token.getToken().contains(">>")||token.getToken().contains("1>>")){
+                flag = true;
+                i = 3;
+                String temp = token.getToken().substring(0, token.getToken().indexOf(">>"));
+                if (token.getToken().contains("1>>")) {
+                    temp = token.getToken().substring(0, token.getToken().indexOf(">>") - 1);
+                }
+                temp = temp.trim();
+                if (!temp.isEmpty()) {
+                    executionTokens.add(temp);
+                }
+                String fileName = token.getToken().substring(token.getToken().indexOf(">>")+2);
+                fileName = fileName.trim();
+                if (fileName.isEmpty()) continue;
+                redirectTokens.add(fileName);
+                continue;
+            }
             if (token.getToken().contains("1>")||token.getToken().contains("2>")){
                 if (token.getToken().contains("1>"))i=1;
                 else i=2;
