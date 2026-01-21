@@ -12,7 +12,7 @@ public class Tokenizer {
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
 
-            if (c == '\\' && !escaped) {
+            if (c == '\\' && !escaped&& !inSingleQuotes) {
                 escaped = true;
                 continue;
             }
