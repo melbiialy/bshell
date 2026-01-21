@@ -13,7 +13,7 @@ public class Type implements BuiltInCommand {
         }
         String commandName = args[0];
         if (CommandRegistry.containsCommand(commandName)){
-            return new RunResults(commandName+": is shell builtin", "");
+            return new RunResults(commandName+" is a shell builtin", "");
         }
         String[] sysArgs = new String[]{"which", commandName};
         ProcessBuilder pb = new ProcessBuilder(sysArgs);
@@ -23,6 +23,6 @@ public class Type implements BuiltInCommand {
         if (output.isEmpty()) {
             return new RunResults(commandName+": not found", "");
         }
-        return new RunResults(commandName+" is a "+ output, "");
+        return new RunResults(commandName+" is "+ output, "");
     }
 }
