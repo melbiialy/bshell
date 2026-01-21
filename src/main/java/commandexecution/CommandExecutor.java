@@ -43,9 +43,9 @@ public class CommandExecutor {
             String fileName = command.getRedirectTokens().getFirst();
             Path filePath = BShell.path.getPath().resolve(fileName);
 
+            Files.createDirectories(filePath.getParent());
 
 
-// Append directly without reading first
             Files.writeString(filePath, output.output()+ "\n",
                     StandardOpenOption.CREATE,
                     StandardOpenOption.APPEND);
