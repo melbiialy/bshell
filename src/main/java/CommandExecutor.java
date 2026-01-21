@@ -20,7 +20,7 @@ public class CommandExecutor {
             Path filePath = BShell.path.getPath().resolve(fileName);
             Files.writeString(filePath, output);
         }
-        else System.out.println(output);
+        else System.out.println(output.trim());
 
     }
 
