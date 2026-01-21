@@ -29,7 +29,7 @@ public class BShell {
             try {
                 commandRunner.execute(tokens);
             }catch (Exception e){
-                System.out.print(e.getMessage());
+                System.out.println(e.getMessage());
             }
             System.out.print("$ ");
         }

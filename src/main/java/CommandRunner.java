@@ -32,7 +32,10 @@ public class CommandRunner {
             return new RunResults(out, err);
 
 
-        } catch (InterruptedException e) {
+        }catch (IOException e) {
+            throw new CommandNotFound(tokens.getFirst()+ ": command not found");
+        }
+        catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
