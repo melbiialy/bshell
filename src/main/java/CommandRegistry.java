@@ -5,53 +5,50 @@ import java.util.List;
 
 public class CommandRegistry {
 
-    List<Command> commands;
+    List<CommandOld> commandOlds;
     public CommandRegistry() {
-        this.commands = new ArrayList<>();
+        this.commandOlds = new ArrayList<>();
     }
 
     public static CommandRegistry registerBuiltinCommands() {
         CommandRegistry commandRegistry = new CommandRegistry();
-        Command exit = new Command("exit",(a)->System.exit(0));
-        Command echo = new Command("echo",(a)->{
-
-        for (String s : a) {
-            if (s == null) continue;
-            System.out.print(s + " ");
-        }
-        System.out.println();
+        CommandOld exit = new CommandOld("exit",(a)->{
+            System.exit(0);
+            return "";
         });
-        Command type = new Command("type",(a)-> {
+        CommandOld echo = new CommandOld("echo",(a)->{return new EchoCommand().operate(a);
+        });
+        CommandOld type = new CommandOld("type",(a)-> {
             if (a.length < 1) {
-                System.out.println("type: missing operand");
-                return;
+                return "type: missing operand";
+
             }
             String commandName = a[0];
             Process process = Runtime.getRuntime().exec(new String[]{
                     "which", commandName
             });
             if (commandRegistry.contains(commandName)) {
-                System.out.println(commandName + " is a shell builtin");
-                return;
+                return commandName + " is a shell builtin";
+
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = reader.readLine();
             if (line != null) {
-                System.out.println(line);
+                return line;
             }else {
-                System.out.println(commandName + ": not found");
+                return commandName + ": not found";
             }
 
         });
-        Command pwd = new Command("pwd",(a)->{
-            System.out.println(BShell.path.getPath().toAbsolutePath().toString());
+        CommandOld pwd = new CommandOld("pwd",(a)->{
+            return BShell.path.getPath().toAbsolutePath().toString();
         });
-        Command cd = new Command("cd",(a)->{
+        CommandOld cd = new CommandOld("cd",(a)->{
             if (a.length < 1) {
-                System.out.println("cd: missing operand");
-                return;
+                return "cd: missing operand";
             }
             BShell.path.moveTo(a[0]);
+            return "";
         });
         commandRegistry.register(cd);
         commandRegistry.register(exit);
@@ -61,19 +58,19 @@ public class CommandRegistry {
         return commandRegistry;
     }
 
-    public void register(Command command) {
-        commands.add(command);
+    public void register(CommandOld commandOld) {
+        commandOlds.add(commandOld);
     }
-    public void unregister(Command command) {
-        commands.remove(command);
+    public void unregister(CommandOld commandOld) {
+        commandOlds.remove(commandOld);
     }
     public boolean contains(String commandName) {
-        return commands.stream().anyMatch(command -> command.command.equals(commandName));
+        return commandOlds.stream().anyMatch(command -> command.command.equals(commandName));
     }
-    public Command getCommand(String commandName) {
-        for (Command command : commands) {
-            if (command.command.equals(commandName)) {
-                return command;
+    public CommandOld getCommand(String commandName) {
+        for (CommandOld commandOld : commandOlds) {
+            if (commandOld.command.equals(commandName)) {
+                return commandOld;
             }
         }
         throw new CommandNotFound(commandName + ":" + " command not found");

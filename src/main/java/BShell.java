@@ -8,12 +8,12 @@ import java.util.List;
 public class BShell {
     public static BPath path;
     public final CommandParser parser;
-    private final CommandRunner commandRunner;
+    private final CommandExecutor commandRunner;
 
     public BShell(CommandParser parser) {
         path = new BPath();
-        this.commandRunner = new CommandRunner(CommandRegistry.registerBuiltinCommands());
         this.parser = parser;
+        commandRunner = new CommandExecutor();
     }
 
 
@@ -27,10 +27,11 @@ public class BShell {
             if (input == null) continue;
             List<Token> tokens = parser.parse(input);
             try {
-                commandRunner.run(tokens);
+                commandRunner.execute(tokens);
             }catch (Exception e){
-                System.out.println(tokens.getFirst().getToken() + ": " +e.getMessage());
+                System.out.print(tokens.getFirst().getToken() + ": " +e.getMessage());
             }
+            System.out.println();
             System.out.print("$ ");
         }
     }

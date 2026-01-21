@@ -1,29 +1,19 @@
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Command {
-    String command;
-    CommandOperation operation;
-    Map<Integer, List<Command>> subCommands;
+    private List<String > tokens;
+    private List<String > redirectTokens;
 
-    public Command(String command, CommandOperation operation) {
-        this.operation = operation;
-        this.command = command;
-        subCommands = new HashMap<>();
+    public Command(List<String> tokens, List<String> redirectTokens) {
+        this.tokens = tokens;
+        this.redirectTokens = redirectTokens;
     }
-    public void execute(String ... args) throws IOException {
-        operation.operate(args);
+
+    public List<String> getTokens() {
+        return tokens;
     }
-    public void addSubCommand(int index, Command command) {
-        subCommands.computeIfAbsent(index, k -> List.of()).add(command);
-    }
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Command other = (Command) obj;
-        return command.equals(other.command);
+
+    public List<String> getRedirectTokens() {
+        return redirectTokens;
     }
 }
