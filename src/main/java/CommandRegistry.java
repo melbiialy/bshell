@@ -28,15 +28,15 @@ public class CommandRegistry {
                     "which", commandName
             });
             if (commandRegistry.contains(commandName)) {
-                return new RunResults("type: "+commandName+": is a shell builtin","");
+                return new RunResults(commandName+" is a shell builtin","");
 
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = reader.readLine();
             if (line != null) {
-                return new RunResults("type: "+commandName+": is "+line,"");
+                return new RunResults(commandName+" is "+line,"");
             }else {
-                return new RunResults("type: "+commandName+": not found","");
+                return new RunResults(commandName+": not found","");
             }
 
         });
