@@ -1,7 +1,5 @@
 package builtincommands;
 
-import commandexecution.CommandExecutor;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +16,7 @@ public class CommandRegistry {
     }
 
     private void initRegistry() {
-        commands.put("echo", new EchoCommand());
+        commands.put("echo", new Echo());
         commands.put("pwd", new Pwd());
         commands.put("cd", new Cd());
         commands.put("type", new Type());

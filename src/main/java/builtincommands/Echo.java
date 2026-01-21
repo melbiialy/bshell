@@ -5,7 +5,7 @@ import commandexecution.RunResults;
 import java.io.IOException;
 
 
-public class EchoCommand implements BuiltInCommand {
+public class Echo implements BuiltInCommand {
 
 
     @Override
