@@ -1,61 +1,78 @@
-import javax.swing.plaf.IconUIResource;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Tokenizer {
     public static List<Token> tokenize(String input) {
         List<Token> tokens = new ArrayList<>();
-        boolean inQuotes = false;
+        boolean inSingleQuotes = false;
         boolean inDoubleQuotes = false;
+        boolean escaped = false;
         StringBuilder temp = new StringBuilder();
+
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
-            if (c==' '&& temp.isEmpty()) continue;
-            if (c == '\''&&!inDoubleQuotes) {
-                inQuotes = !inQuotes;
-            }
-            if (c == '"') {
-                inDoubleQuotes = !inDoubleQuotes;
-            }
-            if (c == ' ' && !(inQuotes || inDoubleQuotes)){
-                Token tokenObj = buildToken(temp);
-                tokens.add(tokenObj);
-              temp = new StringBuilder();
-            }else {temp.append(c);}
 
+            if (c == '\\' && !escaped) {
+                escaped = true;
+                continue;
+            }
+
+            if (!escaped) {
+                if (c == '\'' && !inDoubleQuotes) {
+                    inSingleQuotes = !inSingleQuotes;
+                    temp.append(c);
+                    continue;
+                }
+
+                if (c == '"' && !inSingleQuotes) {
+                    inDoubleQuotes = !inDoubleQuotes;
+                    temp.append(c);
+                    continue;
+                }
+
+                if (c == ' ' && !inSingleQuotes && !inDoubleQuotes) {
+                    if (!temp.isEmpty()) {
+                        tokens.add(buildToken(temp.toString()));
+                        temp = new StringBuilder();
+                    }
+                    continue;
+                }
+            }
+
+
+            temp.append(c);
+            escaped = false;
         }
-        if (!temp.isEmpty()){
-            Token tokenObj = buildToken(temp);
-            tokens.add(tokenObj);
+
+
+        if (!temp.isEmpty()) {
+            tokens.add(buildToken(temp.toString()));
         }
+
         return tokens;
     }
 
-    private static Token buildToken(StringBuilder temp) {
-        String token = temp.toString();
-        Token tokenObj = new Token();
-        if (token.charAt(0) == '\''){
-            tokenObj.setQuoted(true);
-            tokenObj.setDoubleQuoted(false);
-            token = token.substring(1);
-            token = token.substring(0, token.length()-1);
-        }else if (token.charAt(0) == '"'){
-            tokenObj.setQuoted(false);
-            tokenObj.setDoubleQuoted(true);
-            token = token.substring(1);
-            token = token.substring(0, token.length()-1);
-            token = token.replaceAll("\"", "");
-        }
-        else {
-            tokenObj.setQuoted(false);
-            tokenObj.setDoubleQuoted(false);
-            token = token.replaceAll("\"", "");
+    private static Token buildToken(String tokenStr) {
+        Token token = new Token();
+        String value = tokenStr;
+
+        if (value.startsWith("'") && value.endsWith("'") && value.length() > 1) {
+            token.setQuoted(true);
+            token.setDoubleQuoted(false);
+            value = value.substring(1, value.length() - 1);
+
+        } else if (value.startsWith("\"") && value.endsWith("\"") && value.length() > 1) {
+            token.setQuoted(false);
+            token.setDoubleQuoted(true);
+            value = value.substring(1, value.length() - 1);
+
+        } else {
+            token.setQuoted(false);
+            token.setDoubleQuoted(false);
 
         }
 
-        token = token.replaceAll("''","");
-        token = token.replace("\\", "");
-        tokenObj.setToken(token);
-        return tokenObj;
+        token.setToken(value);
+        return token;
     }
 }
