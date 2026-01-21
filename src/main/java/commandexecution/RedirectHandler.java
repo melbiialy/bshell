@@ -10,7 +10,7 @@ public class RedirectHandler {
         List<String > redirectTokens = new ArrayList<>();
         boolean flag = false;
         for (Token token : tokens) {
-            if (token.getToken().contains("1>")){
+            if (token.getToken().contains("1>")||token.getToken().contains("2>")){
                 flag = true;
                 String temp = token.getToken().substring(0, token.getToken().indexOf("1>"));
                 temp = temp.trim();
