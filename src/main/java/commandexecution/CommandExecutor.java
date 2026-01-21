@@ -5,6 +5,7 @@ import builtincommands.CommandRegistry;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 public class CommandExecutor {
@@ -21,7 +22,7 @@ public class CommandExecutor {
         RunResults output = commandRunner.run(command.getTokens());
 
 
-        if (!command.getRedirectTokens().isEmpty()&&command.getReturnCode()!=2) {
+        if (!command.getRedirectTokens().isEmpty()&&command.getReturnCode()!=2&&command.getReturnCode()!=3) {
             String fileName = command.getRedirectTokens().getFirst();
             Path filePath = BShell.path.getPath().resolve(fileName);
             Files.writeString(filePath, output.output());
@@ -41,8 +42,13 @@ public class CommandExecutor {
         else if(command.getReturnCode()==3){
             String fileName = command.getRedirectTokens().getFirst();
             Path filePath = BShell.path.getPath().resolve(fileName);
-            String content = Files.readString(filePath);
-            Files.writeString(filePath, content + output.output());
+
+
+
+// Append directly without reading first
+            Files.writeString(filePath, output.output()+ "\n",
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.APPEND);
         }
         else {
             if (!output.output().isEmpty()) {
