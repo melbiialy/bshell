@@ -54,6 +54,7 @@ public class Tokenizer {
         }
 
         token = token.replaceAll("''","");
+        token = token.replace("\\", "");
         tokenObj.setToken(token);
         return tokenObj;
     }
