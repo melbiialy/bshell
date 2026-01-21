@@ -23,6 +23,6 @@ public class Type implements BuiltInCommand {
         if (output.isEmpty()) {
             return new RunResults(commandName+": not found", "");
         }
-        return new RunResults(commandName+" is "+ output, "");
+        return new RunResults(commandName+" is a "+ output, "");
     }
 }
