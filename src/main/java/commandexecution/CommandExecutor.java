@@ -19,13 +19,23 @@ public class CommandExecutor {
     public void execute(List<Token> tokens) throws IOException, InterruptedException {
         Command command = redirectHandler.handle(tokens);
         RunResults output = commandRunner.run(command.getTokens());
-        if (!command.getRedirectTokens().isEmpty()) {
+
+        if (!command.getRedirectTokens().isEmpty()&&command.getReturnCode()==1) {
             String fileName = command.getRedirectTokens().getFirst();
             Path filePath = BShell.path.getPath().resolve(fileName);
             Files.writeString(filePath, output.output());
             if (!output.error().isEmpty()) {
                 System.out.println(output.error().trim());
             }
+        }
+        else if (command.getReturnCode()==2) {
+            String fileName = command.getRedirectTokens().getFirst();
+            Path filePath = BShell.path.getPath().resolve(fileName);
+            Files.writeString(filePath, output.error());
+            if (!output.output().isEmpty()) {
+                System.out.println(output.error().trim());
+            }
+
         }
         else {
             if (!output.output().isEmpty()) {
