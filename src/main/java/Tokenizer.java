@@ -20,13 +20,11 @@ public class Tokenizer {
             if (!escaped) {
                 if (c == '\'' && !inDoubleQuotes) {
                     inSingleQuotes = !inSingleQuotes;
-//                    temp.append(c);
                     continue;
                 }
 
                 if (c == '"' && !inSingleQuotes) {
                     inDoubleQuotes = !inDoubleQuotes;
-//                    temp.append(c);
                     continue;
                 }
 
@@ -38,8 +36,9 @@ public class Tokenizer {
                     continue;
                 }
             }
-
-
+            if (escaped&&c=='\''&&!inDoubleQuotes) {
+                temp.append('\\');
+            }
             temp.append(c);
             escaped = false;
         }
