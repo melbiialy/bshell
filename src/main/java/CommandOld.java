@@ -13,7 +13,7 @@ public class CommandOld {
         this.command = command;
         subCommands = new HashMap<>();
     }
-    public String  execute(String ... args) throws IOException {
+    public RunResults  execute(String ... args) throws IOException {
        return operation.operate(args);
     }
     public void addSubCommand(int index, CommandOld commandOld) {

@@ -14,13 +14,13 @@ public class CommandRegistry {
         CommandRegistry commandRegistry = new CommandRegistry();
         CommandOld exit = new CommandOld("exit",(a)->{
             System.exit(0);
-            return "";
+            return new RunResults("","");
         });
         CommandOld echo = new CommandOld("echo",(a)->{return new EchoCommand().operate(a);
         });
         CommandOld type = new CommandOld("type",(a)-> {
             if (a.length < 1) {
-                return "type: missing operand";
+                return new RunResults("type: type: missing operand","");
 
             }
             String commandName = a[0];
@@ -28,27 +28,27 @@ public class CommandRegistry {
                     "which", commandName
             });
             if (commandRegistry.contains(commandName)) {
-                return commandName + " is a shell builtin";
+                return new RunResults("type: "+commandName+": is a shell builtin","");
 
             }
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = reader.readLine();
             if (line != null) {
-                return line;
+                return new RunResults("type: "+commandName+": is "+line,"");
             }else {
-                return commandName + ": not found";
+                return new RunResults("type: "+commandName+": not found","");
             }
 
         });
         CommandOld pwd = new CommandOld("pwd",(a)->{
-            return BShell.path.getPath().toAbsolutePath().toString();
+            return new RunResults(BShell.path.getPath().toString(),"");
         });
         CommandOld cd = new CommandOld("cd",(a)->{
             if (a.length < 1) {
-                return "cd: missing operand";
+                return new RunResults("cd: missing operand","");
             }
             BShell.path.moveTo(a[0]);
-            return "";
+            return new RunResults("","");
         });
         commandRegistry.register(cd);
         commandRegistry.register(exit);
