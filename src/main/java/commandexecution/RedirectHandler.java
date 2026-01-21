@@ -12,12 +12,12 @@ public class RedirectHandler {
         for (Token token : tokens) {
             if (token.getToken().contains("1>")||token.getToken().contains("2>")){
                 flag = true;
-                String temp = token.getToken().substring(0, token.getToken().indexOf("1>"));
+                String temp = token.getToken().substring(0, token.getToken().indexOf(">")-1);
                 temp = temp.trim();
                 if (!temp.isEmpty()) {
                     executionTokens.add(temp);
                 }
-                String fileName = token.getToken().substring(token.getToken().indexOf("1>")+2);
+                String fileName = token.getToken().substring(token.getToken().indexOf(">")+1);
                 fileName = fileName.trim();
                 if (fileName.isEmpty()) continue;
                 redirectTokens.add(fileName);
