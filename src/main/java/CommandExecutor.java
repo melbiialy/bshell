@@ -23,7 +23,11 @@ public class CommandExecutor {
                 System.out.println(output.error().trim());
             }
         }
-        else System.out.println(output.output().trim());
+        else {
+            if (!output.output().isEmpty()) {
+                System.out.println(output.output().trim());
+            }
+        }
 
     }
 
