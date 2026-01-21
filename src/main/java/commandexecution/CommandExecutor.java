@@ -33,7 +33,7 @@ public class CommandExecutor {
             Path filePath = BShell.path.getPath().resolve(fileName);
             Files.writeString(filePath, output.error());
             if (!output.output().isEmpty()) {
-                System.out.println(output.error().trim());
+                System.out.println(output.output().trim());
             }
 
         }
