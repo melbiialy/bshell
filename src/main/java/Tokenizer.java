@@ -36,7 +36,7 @@ public class Tokenizer {
                     continue;
                 }
             }
-            if (escaped&&c=='\''&&!inDoubleQuotes) {
+            if (escaped&&c=='\''&&inDoubleQuotes) {
                 temp.append('\\');
             }
             temp.append(c);
