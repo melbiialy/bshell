@@ -47,7 +47,6 @@ public class CommandExecutor {
 
 
             Files.writeString(filePath, output.output()+ "\n",
-                    StandardOpenOption.CREATE,
                     StandardOpenOption.APPEND);
         }
         else {
