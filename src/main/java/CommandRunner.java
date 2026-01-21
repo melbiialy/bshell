@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,13 +15,16 @@ public class CommandRunner {
             return commandRegistry.getCommand(tokens.getFirst()).execute(args);
         }
         try {
-            ProcessBuilder pb = new ProcessBuilder(tokens.toArray(String[]::new));
+            ProcessBuilder pb = new ProcessBuilder(tokens);
             pb.directory(BShell.path.getPath().toFile());
-            pb.inheritIO();
+
             Process process = pb.start();
             process.waitFor();
-            return Arrays.toString(process.getInputStream().readAllBytes());
 
+            return new String(
+                    process.getInputStream().readAllBytes(),
+                    StandardCharsets.UTF_8
+            );
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

@@ -21,8 +21,13 @@ public class RedirectHandler {
             }
             else if (token.getToken().contains(">")) {
                 flag = true;
-                executionTokens.add(token.getToken().substring(0, token.getToken().indexOf(">")));
-                redirectTokens.add(token.getToken().substring(token.getToken().indexOf(">")+1));
+                String temp = token.getToken().substring(0, token.getToken().indexOf(">"));
+                temp = temp.trim();
+                executionTokens.add(temp);
+                String fileName = token.getToken().substring(token.getToken().indexOf(">")+1);
+                fileName = fileName.trim();
+                if (fileName.isEmpty()) continue;
+                redirectTokens.add(fileName);
                 continue;
             }
             if (flag) redirectTokens.add(token.getToken());
