@@ -58,12 +58,10 @@ public class Tokenizer {
         if (value.startsWith("'") && value.endsWith("'") && value.length() > 1) {
             token.setQuoted(true);
             token.setDoubleQuoted(false);
-//            value = value.substring(1, value.length() - 1);
 
         } else if (value.startsWith("\"") && value.endsWith("\"") && value.length() > 1) {
             token.setQuoted(false);
             token.setDoubleQuoted(true);
-//            value = value.substring(1, value.length() - 1);
 
         } else {
             token.setQuoted(false);
