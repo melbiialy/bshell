@@ -14,13 +14,16 @@ public class CommandExecutor {
 
     public void execute(List<Token> tokens) throws IOException {
         Command command = redirectHandler.handle(tokens);
-        String output = commandRunner.run(command.getTokens());
+        RunResults output = commandRunner.run(command.getTokens());
         if (!command.getRedirectTokens().isEmpty()) {
             String fileName = command.getRedirectTokens().getFirst();
             Path filePath = BShell.path.getPath().resolve(fileName);
-            Files.writeString(filePath, output);
+            Files.writeString(filePath, output.output());
+            if (!output.error().isEmpty()) {
+                System.out.println(output.error().trim());
+            }
         }
-        else System.out.println(output.trim());
+        else System.out.println(output.output().trim());
 
     }
 

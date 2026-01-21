@@ -9,7 +9,7 @@ public class CommandRunner {
         this.commandRegistry = commandRegistry;
     }
 
-    public String run(List<String > tokens) throws IOException {
+    public RunResults run(List<String > tokens) throws IOException {
         if (commandRegistry.contains(tokens.getFirst())) {
             String [] args = tokens.stream().skip(1).toArray(String[]::new);
             return commandRegistry.getCommand(tokens.getFirst()).execute(args);
@@ -29,8 +29,8 @@ public class CommandRunner {
                     process.getErrorStream().readAllBytes(),
                     StandardCharsets.UTF_8
             );
-            if (!err.isEmpty()) throw new NoSuchDirectory(err);
-            return out;
+            return new RunResults(out, err);
+
 
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
