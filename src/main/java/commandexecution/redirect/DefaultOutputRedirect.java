@@ -1,6 +1,8 @@
-package commandexecution;
+package commandexecution.redirect;
 
-public class DefaultOutputRedirect implements Redirect{
+import commandexecution.RunResults;
+
+public class DefaultOutputRedirect implements Redirect {
     @Override
     public void redirect(RunResults results, String output) {
         if (!results.output().isEmpty()){

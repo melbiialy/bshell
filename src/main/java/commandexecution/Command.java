@@ -1,11 +1,13 @@
 package commandexecution;
 
+import commandexecution.redirect.Redirect;
+
 import java.util.List;
 
 public class Command {
-    private List<String > tokens;
-    private List<String > redirectTokens;
-    private Redirect redirect;
+    private final List<String > tokens;
+    private final List<String > redirectTokens;
+    private final Redirect redirect;
 
     public Command(List<String> tokens, List<String> redirectTokens, Redirect redirect) {
         this.tokens = tokens;
@@ -17,12 +19,6 @@ public class Command {
         return tokens;
     }
 
-    public List<String> getRedirectTokens() {
-        return redirectTokens;
-    }
-    public void setRedirect(Redirect redirect) {
-        this.redirect = redirect;
-    }
     public void redirect(RunResults results) {
         this.redirect.redirect(results, !redirectTokens.isEmpty() ?redirectTokens.getFirst():"");
     }
