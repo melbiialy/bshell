@@ -35,7 +35,7 @@ public class RedirectHandler {
                 redirect = new RedirectStdout();
                String temp = token.getToken().substring(0, token.getToken().indexOf(">"));
                if (token.getToken().contains("1>")||token.getToken().contains("2>")) {
-                   temp = token.getToken().substring(0, token.getToken().indexOf(">>") - 1);
+                   temp = token.getToken().substring(0, token.getToken().indexOf(">") - 1);
                }
                if (token.getToken().contains("2>")) redirect = new RedirectStderr();
                temp = temp.trim();

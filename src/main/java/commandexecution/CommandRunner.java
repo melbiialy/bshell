@@ -24,31 +24,13 @@ public class CommandRunner {
         try {
             ProcessBuilder pb = new ProcessBuilder(tokens);
             pb.directory(BShell.path.getPath().toFile());
-            pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-            pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-            pb.redirectError(ProcessBuilder.Redirect.PIPE);
             Process process = pb.start();
 
-            CompletableFuture<String> stdoutFuture = CompletableFuture.supplyAsync(() -> {
-                try {
-                    return new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                } catch (IOException e) {
-                    return "";
-                }
-            });
-
-            CompletableFuture<String> stderrFuture = CompletableFuture.supplyAsync(() -> {
-                try {
-                    return new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
-                } catch (IOException e) {
-                    return "";
-                }
-            });
 
             process.waitFor();
 
-            String out = stdoutFuture.get();
-            String err = stderrFuture.get();
+            String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            String err = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
 
             if (err.isEmpty()) err = "";
             else {
@@ -61,9 +43,10 @@ public class CommandRunner {
 
             }
 
+
             return new RunResults(out, err);
 
-        }catch (IOException | ExecutionException e) {
+        }catch (IOException e) {
             throw new CommandNotFound(tokens.getFirst()+ ": command not found");
         }
     }

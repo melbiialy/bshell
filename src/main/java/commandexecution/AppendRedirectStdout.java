@@ -7,15 +7,15 @@ import java.nio.file.StandardOpenOption;
 public class AppendRedirectStdout implements Redirect{
 
     @Override
-    public void redirect(RunResults results, String output) {
-        if (!results.output().isEmpty()){
-            Path path = BShell.path.getPath().resolve(output);
+    public void redirect(RunResults results, String fileName) {
+            System.out.println(results.output());
+            Path path = BShell.path.getPath().resolve(fileName);
             try {
                 Files.writeString(path,"\n"+results.output(),StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             } catch (Exception e) {
                 System.out.println("Error writing to file: " + e.getMessage());
             }
-        }
+
         if (!results.error().isEmpty()){
             System.out.println(results.error());
         }
