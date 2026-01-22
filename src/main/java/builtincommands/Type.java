@@ -20,6 +20,7 @@ public class Type implements BuiltInCommand {
         Process process = pb.start();
         process.waitFor();
         String output = new String(process.getInputStream().readAllBytes());
+        output = output.trim();
         if (output.isEmpty()) {
             return new RunResults(commandName+": not found", "");
         }
