@@ -11,12 +11,12 @@ public class RedirectStdout implements Redirect{
             try {
                 Files.writeString(path,results.output());
             } catch (Exception e) {
-                System.err.println("Error writing to file: " + e.getMessage());
+                System.out.println("Error writing to file: " + e.getMessage());
             }
 
         }
         if (!results.error().isEmpty()){
-            System.err.println(results.error());
+            System.out.println(results.error());
         }
 
     }

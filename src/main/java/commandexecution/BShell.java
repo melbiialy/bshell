@@ -19,13 +19,13 @@ public class BShell {
 
 
 
-    public void start() throws IOException {
+    public void start() throws IOException, InterruptedException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("$ ");
         String input;
         while (true){
             input = reader.readLine();
-            if (input == null) continue;
+            if (input.isBlank()) continue;
             List<Token> tokens = parser.parse(input);
             try {
                 commandRunner.execute(tokens);

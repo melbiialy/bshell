@@ -6,7 +6,5 @@ public class Main {
         BShell shell = new BShell(new CommandParserImp());
         shell.start();
 
-
-
     }
 }

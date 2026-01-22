@@ -7,7 +7,7 @@ public class DefaultOutputRedirect implements Redirect{
             System.out.println(results.output());
         }
         if (!results.error().isEmpty()){
-            System.err.println(results.error());
+            System.out.println(results.error());
         }
 
     }
