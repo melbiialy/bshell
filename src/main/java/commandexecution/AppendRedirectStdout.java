@@ -8,7 +8,7 @@ public class AppendRedirectStdout implements Redirect{
 
     @Override
     public void redirect(RunResults results, String fileName) {
-            System.out.println(results.output());
+
             Path path = BShell.path.getPath().resolve(fileName);
             try {
                 Files.writeString(path,"\n"+results.output(),StandardOpenOption.CREATE, StandardOpenOption.APPEND);
