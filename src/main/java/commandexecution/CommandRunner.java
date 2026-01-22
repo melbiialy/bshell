@@ -53,12 +53,12 @@ public class CommandRunner {
             if (err.isEmpty()) err = "";
             else {
                 err = err.trim();
-                err = err.substring(0, err.length()-1);
+
             }
             if (out.isEmpty()) out = "";
             else {
                 out = out.trim();
-                out = out.substring(0, out.length()-1);
+
             }
 
             return new RunResults(out, err);
