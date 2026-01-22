@@ -3,9 +3,7 @@ package commandexecution;
 import builtincommands.CommandRegistry;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+
 import java.util.List;
 
 public class CommandExecutor {
@@ -20,42 +18,7 @@ public class CommandExecutor {
     public void execute(List<Token> tokens) throws IOException, InterruptedException {
         Command command = redirectHandler.handle(tokens);
         RunResults output = commandRunner.run(command.getTokens());
-
-
-        if (!command.getRedirectTokens().isEmpty()&&command.getReturnCode()!=2&&command.getReturnCode()!=3) {
-            String fileName = command.getRedirectTokens().getFirst();
-            Path filePath = BShell.path.getPath().resolve(fileName);
-            Files.writeString(filePath, output.output());
-            if (!output.error().isEmpty()) {
-                System.out.println(output.error().trim());
-            }
-        }
-        else if (command.getReturnCode()==2) {
-            String fileName = command.getRedirectTokens().getFirst();
-            Path filePath = BShell.path.getPath().resolve(fileName);
-            Files.writeString(filePath, output.error());
-            if (!output.output().isEmpty()) {
-                System.out.println(output.output().trim());
-            }
-
-        }
-        else if(command.getReturnCode()==3){
-            String fileName = command.getRedirectTokens().getFirst();
-            Path filePath = BShell.path.getPath().resolve(fileName);
-
-            Files.createDirectories(filePath.getParent());
-
-
-            Files.writeString(filePath, '\n'+output.output(),
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.APPEND);
-        }
-        else {
-            if (!output.output().isEmpty()) {
-                System.out.println(output.output().trim());
-            }
-        }
-
+        command.redirect(output);
     }
 
 }
