@@ -23,9 +23,5 @@ public class BPath {
         } else {
             System.out.println("cd: " + directory + ": No such file or directory");
         }
-
-
     }
-
-
 }

@@ -4,11 +4,9 @@ import builtincommands.CommandRegistry;
 import exception.CommandNotFound;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+
 
 public class CommandRunner {
     private final CommandRegistry commandRegistry;
