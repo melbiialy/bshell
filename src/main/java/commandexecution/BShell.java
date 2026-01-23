@@ -1,5 +1,13 @@
 package commandexecution;
 
+import builtincommands.CommandRegistry;
+
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.completer.StringsCompleter;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,11 +28,13 @@ public class BShell {
 
 
     public void start() throws IOException, InterruptedException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("$ ");
-        String input;
+        org.jline.terminal.Terminal terminal = TerminalBuilder.builder().system(true).build();
+        LineReader lineReader = LineReaderBuilder.builder().terminal(terminal)
+                .completer(new StringsCompleter("echo","exit","type","cd","pwd")).build();
+
         while (true){
-            input = reader.readLine();
+
+            String input = lineReader.readLine("$ ");
             if (input.isBlank()) continue;
             List<Token> tokens = parser.parse(input);
             try {
@@ -32,7 +42,6 @@ public class BShell {
             }catch (Exception e){
                 System.out.println(e.getMessage());
             }
-            System.out.print("$ ");
         }
     }
 

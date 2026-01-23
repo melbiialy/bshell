@@ -26,4 +26,8 @@ public class CommandRegistry {
     public BuiltInCommand getCommand(String first) {
         return commands.get(first);
     }
+
+    public String[] getAllCommandNames() {
+        return commands.keySet().toArray(new String[0]);
+    }
 }
