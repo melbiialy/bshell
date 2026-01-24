@@ -28,43 +28,88 @@ public class SystemCommandsCompleter implements Completer {
                 }
             }
         }
-
-
     }
 
     @Override
     public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
         String prefix = parsedLine.word();
+
+        // If prefix changed, reset state
         if (!prefix.equals(lastPrefix)) {
-            reset();
+            waitSecond = false;
         }
+
+        // Find all matching commands
         List<String> matches = new ArrayList<>();
         for (String command : commands) {
             if (command.startsWith(prefix)) {
-                matches.add(command.trim());
+                matches.add(command);
             }
         }
-        if (matches.isEmpty()) return;
-        if (matches.size() == 1) {
-            list.add(new Candidate(matches.getFirst()));
+
+        if (matches.isEmpty()) {
+            waitSecond = false;
+            lastPrefix = "";
+            return;
         }
-        else if (waitSecond){
+
+        // Only one match - complete it directly
+        if (matches.size() == 1) {
+            list.add(new Candidate(matches.get(0)));
+            waitSecond = false;
+            lastPrefix = "";
+            return;
+        }
+
+        // Multiple matches - need to handle double-tab
+        if (waitSecond) {
+            // Second tab press - show all matches
             lineReader.getTerminal().writer().println();
             lineReader.getTerminal().writer().println(String.join("  ", matches));
             lineReader.getTerminal().flush();
             lineReader.callWidget(LineReader.REDRAW_LINE);
             lineReader.callWidget(LineReader.REDISPLAY);
-        }
-        else {
+            waitSecond = false;
+            lastPrefix = "";
+        } else {
+            // First tab press - complete common prefix and beep
+            String commonPrefix = getCommonPrefix(matches);
+
+            if (commonPrefix.length() > prefix.length()) {
+                // Add candidate without trailing space using suffix=""
+                list.add(new Candidate(
+                        commonPrefix,      // value
+                        commonPrefix,      // display
+                        null,              // group
+                        null,              // description
+                        null,              // suffix (null means no space)
+                        null,              // key
+                        false              // complete = false means don't add space
+                ));
+            }
+
+            // Beep to indicate more options available
             lineReader.getTerminal().writer().print("\u0007");
             lineReader.getTerminal().flush();
+
             waitSecond = true;
-            this.lastPrefix = prefix;
+            lastPrefix = commonPrefix.length() > prefix.length() ? commonPrefix : prefix;
         }
     }
 
-    private void reset() {
+    private String getCommonPrefix(List<String> matches) {
+        if (matches.isEmpty()) return "";
 
-        waitSecond = false;
+        String prefix = matches.get(0);
+        for (int i = 1; i < matches.size(); i++) {
+            String current = matches.get(i);
+            int j = 0;
+            int minLen = Math.min(prefix.length(), current.length());
+            while (j < minLen && prefix.charAt(j) == current.charAt(j)) {
+                j++;
+            }
+            prefix = prefix.substring(0, j);
+        }
+        return prefix;
     }
 }
