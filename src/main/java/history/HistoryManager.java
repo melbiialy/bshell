@@ -13,8 +13,8 @@ public class HistoryManager {
         historySize++;
     }
     public static Set<String> getHistory(int limit) {
-        if (historySize < limit) return Collections.emptySet();
-        List<String> historyList = new ArrayList<>(history).subList(limit,historySize);
+        if (historySize < limit) limit = 0;
+        List<String> historyList = new ArrayList<>(history).subList(historySize-limit,historySize);
         return new LinkedHashSet<>(historyList);
     }
 }
