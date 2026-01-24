@@ -1,6 +1,7 @@
 package builtincommands;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class CommandRegistry {
@@ -29,5 +30,9 @@ public class CommandRegistry {
 
     public String[] getAllCommandNames() {
         return commands.keySet().toArray(new String[0]);
+    }
+
+    public HashSet<String> getCommandNames() {
+        return new HashSet<>(commands.keySet());
     }
 }

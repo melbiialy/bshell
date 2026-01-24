@@ -2,10 +2,13 @@ package commandexecution;
 
 import builtincommands.CommandRegistry;
 
+import org.jline.builtins.Completers;
+import org.jline.reader.CompletionMatcher;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.completer.StringsCompleter;
+import org.jline.reader.impl.completer.SystemCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
@@ -32,10 +35,12 @@ public class BShell {
         parserJ.setEofOnUnclosedQuote(false);
         parserJ.setEscapeChars(null);
         org.jline.terminal.Terminal terminal = TerminalBuilder.builder().system(true).build();
+        CommandRegistry commandRegistry = new CommandRegistry();
         LineReader lineReader = LineReaderBuilder.builder().terminal(terminal)
                 .parser(parserJ)
-                .completer(new StringsCompleter("echo", "exit", "type", "cd", "pwd")).build();
-
+                .completer(new BuiltinCompleter(commandRegistry.getCommandNames()))
+                .completer(new SystemCommandsCompleter())
+                .build();
         while (true) {
 
             String input = lineReader.readLine("$ ");
