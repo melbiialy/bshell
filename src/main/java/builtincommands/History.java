@@ -12,7 +12,7 @@ public class History implements BuiltInCommand{
     @Override
     public RunResults operate(String... args) throws IOException, InterruptedException {
         AtomicInteger counter = new AtomicInteger(1);
-        int limit = 0;
+        int limit = HistoryManager.getHistorySize();
         if (args.length > 0) {
             limit = Integer.parseInt(args[0]);
         }

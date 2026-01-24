@@ -17,4 +17,10 @@ public class HistoryManager {
         List<String> historyList = new ArrayList<>(history).subList(historySize-limit,historySize);
         return new LinkedHashSet<>(historyList);
     }
+    public static void clearHistory() {
+        history.clear();
+    }
+    public static int getHistorySize() {
+        return historySize;
+    }
 }
