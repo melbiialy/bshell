@@ -1,4 +1,4 @@
-package commandexecution;
+package commandexecution.autocompletion;
 
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;

@@ -2,21 +2,16 @@ package commandexecution;
 
 import builtincommands.CommandRegistry;
 
-import org.jline.builtins.Completers;
+import commandexecution.autocompletion.BuiltinCompleter;
+import commandexecution.autocompletion.SystemCommandsCompleter;
 import org.jline.reader.Completer;
-import org.jline.reader.CompletionMatcher;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.completer.AggregateCompleter;
-import org.jline.reader.impl.completer.StringsCompleter;
-import org.jline.reader.impl.completer.SystemCompleter;
-import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 
 
