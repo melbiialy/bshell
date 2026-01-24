@@ -3,10 +3,12 @@ package commandexecution;
 import builtincommands.CommandRegistry;
 
 import org.jline.builtins.Completers;
+import org.jline.reader.Completer;
 import org.jline.reader.CompletionMatcher;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.DefaultParser;
+import org.jline.reader.impl.completer.AggregateCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.impl.completer.SystemCompleter;
 import org.jline.terminal.Terminal;
@@ -36,10 +38,10 @@ public class BShell {
         parserJ.setEscapeChars(null);
         org.jline.terminal.Terminal terminal = TerminalBuilder.builder().system(true).build();
         CommandRegistry commandRegistry = new CommandRegistry();
+        Completer completer = new AggregateCompleter(new BuiltinCompleter(commandRegistry.getCommandNames()), new SystemCommandsCompleter());
         LineReader lineReader = LineReaderBuilder.builder().terminal(terminal)
                 .parser(parserJ)
-                .completer(new BuiltinCompleter(commandRegistry.getCommandNames()))
-                .completer(new SystemCommandsCompleter())
+                .completer(completer)
                 .build();
         while (true) {
 
