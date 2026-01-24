@@ -44,7 +44,7 @@ public class SystemCommandsCompleter implements Completer {
         List<String > matches = new ArrayList<>();
         for (String command : commands) {
             if (command.startsWith(prefix)) {
-                matches.add(command);
+                matches.add(command.trim());
             }
         }
         if (matches.isEmpty()) return;
