@@ -6,18 +6,15 @@ import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SystemCommandsCompleter implements Completer {
-    private final List<String> commands;
+    private final Set<String> commands;
     private String lastPrefix = "";
     private boolean waitSecond = false;
 
     public SystemCommandsCompleter() {
-        commands = new ArrayList<>();
+        commands = new TreeSet<>();
         String path = System.getenv("PATH");
         if (path != null) {
             for (String dir : path.split(":")){
@@ -57,7 +54,7 @@ public class SystemCommandsCompleter implements Completer {
             String output = String.join("  ", matches);  // Two spaces
             lineReader.getTerminal().writer().println(output);
             lineReader.getTerminal().flush();
-//            matches.sort(String::compareTo);
+            matches.sort(String::compareTo);
 
             // Still add candidates for potential completion
             list.addAll(matches.stream().map(Candidate::new).toList());
