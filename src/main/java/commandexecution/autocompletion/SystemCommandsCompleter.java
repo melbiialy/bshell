@@ -6,12 +6,15 @@ import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class SystemCommandsCompleter implements Completer {
     private final Set<String> commands;
+    private String lastPrefix = "";
+    private boolean waitSecond = false;
 
     public SystemCommandsCompleter() {
         commands = new HashSet<>();
@@ -34,14 +37,37 @@ public class SystemCommandsCompleter implements Completer {
 
     @Override
     public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
-        if (parsedLine.wordIndex() != 0) return;
         String prefix = parsedLine.word();
+        if (!prefix.equals(lastPrefix)) {
+            reset("");
+        }
+        List<String > matches = new ArrayList<>();
         for (String command : commands) {
             if (command.startsWith(prefix)) {
-                list.add(new Candidate(command));
+                matches.add(command);
             }
+        }
+        if (matches.isEmpty()) return;
+        if (matches.size() == 1) {
+            list.add(new Candidate(matches.getFirst()));
+        }
+        else if (waitSecond){
+            list.addAll(matches.stream().map(Candidate::new).toList());
+            reset("");
+        }
+        else {
+            lineReader.getTerminal().writer().print("\u0007");
+            lineReader.getTerminal().flush();
+            waitSecond = true;
+            this.lastPrefix = prefix;
         }
 
 
+
+    }
+
+    private void reset(String prefix) {
+        lastPrefix = prefix;
+        waitSecond = false;
     }
 }
