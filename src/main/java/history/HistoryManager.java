@@ -8,7 +8,7 @@ public class HistoryManager {
     public HistoryManager() {
         history = new LinkedHashSet<>();
     }
-    public void add(String command) {
+    public static void add(String command) {
         history.add((historySize+1) + "  " +command);
         historySize++;
     }
