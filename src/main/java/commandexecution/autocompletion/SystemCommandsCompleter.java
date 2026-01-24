@@ -34,12 +34,10 @@ public class SystemCommandsCompleter implements Completer {
     public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
         String prefix = parsedLine.word();
 
-        // If prefix changed, reset state
         if (!prefix.equals(lastPrefix)) {
             waitSecond = false;
         }
 
-        // Find all matching commands
         List<String> matches = new ArrayList<>();
         for (String command : commands) {
             if (command.startsWith(prefix)) {
@@ -53,17 +51,14 @@ public class SystemCommandsCompleter implements Completer {
             return;
         }
 
-        // Only one match - complete it directly
         if (matches.size() == 1) {
-            list.add(new Candidate(matches.get(0)));
+            list.add(new Candidate(matches.getFirst()));
             waitSecond = false;
             lastPrefix = "";
             return;
         }
 
-        // Multiple matches - need to handle double-tab
         if (waitSecond) {
-            // Second tab press - show all matches
             lineReader.getTerminal().writer().println();
             lineReader.getTerminal().writer().println(String.join("  ", matches));
             lineReader.getTerminal().flush();
@@ -72,11 +67,9 @@ public class SystemCommandsCompleter implements Completer {
             waitSecond = false;
             lastPrefix = "";
         } else {
-            // First tab press - complete common prefix and beep
             String commonPrefix = getCommonPrefix(matches);
 
             if (commonPrefix.length() > prefix.length()) {
-                // Add candidate without trailing space using suffix=""
                 list.add(new Candidate(
                         commonPrefix,      // value
                         commonPrefix,      // display
@@ -100,7 +93,7 @@ public class SystemCommandsCompleter implements Completer {
     private String getCommonPrefix(List<String> matches) {
         if (matches.isEmpty()) return "";
 
-        String prefix = matches.get(0);
+        String prefix = matches.getFirst();
         for (int i = 1; i < matches.size(); i++) {
             String current = matches.get(i);
             int j = 0;
