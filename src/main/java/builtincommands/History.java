@@ -15,7 +15,7 @@ public class History implements BuiltInCommand{
         String history = HistoryManager.getHistory()
                 .stream()
                 .reduce("",
-                        (a, b) -> (a +counter.getAndIncrement()+" "+ b) + "\n");
+                        (a, b) -> (a +"    "+counter.getAndIncrement()+"  "+ b) + "\n");
         history = history.trim();
         return new RunResults(history, "");
     }
