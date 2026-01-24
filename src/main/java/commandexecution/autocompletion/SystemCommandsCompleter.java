@@ -50,14 +50,12 @@ public class SystemCommandsCompleter implements Completer {
         }
         else if (waitSecond){
             // Print manually with exact spacing
-            lineReader.getTerminal().writer().println();
-            String output = String.join("  ", matches);  // Two spaces
-            lineReader.getTerminal().writer().println(output);
+            lineReader.getTerminal().writer().println(); // new line before matches
+            lineReader.getTerminal().writer().println(String.join("  ", matches)); // two spaces
             lineReader.getTerminal().flush();
-            matches.sort(String::compareTo);
-
-            // Still add candidates for potential completion
-            list.addAll(matches.stream().map(Candidate::new).toList());
+// Redraw prompt with original prefix
+            lineReader.callWidget(LineReader.REDRAW_LINE);
+            lineReader.callWidget(LineReader.REDISPLAY);
             reset("");
         }
         else {
