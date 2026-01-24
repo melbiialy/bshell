@@ -41,7 +41,7 @@ public class SystemCommandsCompleter implements Completer {
         if (!prefix.equals(lastPrefix)) {
             reset("");
         }
-        List<String > matches = new ArrayList<>();
+        List<String> matches = new ArrayList<>();
         for (String command : commands) {
             if (command.startsWith(prefix)) {
                 matches.add(command.trim());
@@ -52,7 +52,18 @@ public class SystemCommandsCompleter implements Completer {
             list.add(new Candidate(matches.getFirst()));
         }
         else if (waitSecond){
-            list.addAll(matches.stream().map(Candidate::new).toList());
+            // Use Candidate constructor with display parameter
+            for (String match : matches) {
+                list.add(new Candidate(
+                        match,           // value
+                        match,           // display
+                        null,            // group
+                        null,            // description
+                        null,            // suffix
+                        null,            // key
+                        true             // complete
+                ));
+            }
             reset("");
         }
         else {
@@ -61,9 +72,6 @@ public class SystemCommandsCompleter implements Completer {
             waitSecond = true;
             this.lastPrefix = prefix;
         }
-
-
-
     }
 
     private void reset(String prefix) {

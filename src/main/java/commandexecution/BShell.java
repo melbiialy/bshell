@@ -31,7 +31,7 @@ public class BShell {
         DefaultParser parserJ = new DefaultParser();
         parserJ.setEofOnUnclosedQuote(false);
         parserJ.setEscapeChars(null);
-        org.jline.terminal.Terminal terminal = TerminalBuilder.builder().system(true).build();
+        org.jline.terminal.Terminal terminal = TerminalBuilder.builder().system(true).dumb(true).build();
         CommandRegistry commandRegistry = new CommandRegistry();
         Completer completer = new AggregateCompleter(new BuiltinCompleter(commandRegistry.getCommandNames()), new SystemCommandsCompleter());
         LineReader lineReader = LineReaderBuilder.builder().terminal(terminal)
