@@ -16,6 +16,7 @@ public class History implements BuiltInCommand{
                 .stream()
                 .reduce("",
                         (a, b) -> (a +counter.getAndIncrement()+" "+ b) + "\n");
+        history = history.trim();
         return new RunResults(history, "");
     }
 }
