@@ -1,6 +1,8 @@
 package commandexecution;
 
 import builtincommands.CommandRegistry;
+import commandexecution.dto.RunResults;
+import commandexecution.dto.Token;
 
 import java.io.IOException;
 

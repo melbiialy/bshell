@@ -1,7 +1,6 @@
 package builtincommands;
 
-import commandexecution.CommandExecutor;
-import commandexecution.RunResults;
+import commandexecution.dto.RunResults;
 
 import java.io.IOException;
 

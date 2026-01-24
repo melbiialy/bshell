@@ -1,6 +1,7 @@
 package commandexecution;
 
 import builtincommands.CommandRegistry;
+import commandexecution.dto.RunResults;
 import exception.CommandNotFound;
 
 import java.io.IOException;

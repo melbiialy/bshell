@@ -1,7 +1,7 @@
 package commandexecution.redirect;
 
 import commandexecution.BShell;
-import commandexecution.RunResults;
+import commandexecution.dto.RunResults;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

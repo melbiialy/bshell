@@ -1,6 +1,6 @@
 package commandexecution.redirect;
 
-import commandexecution.RunResults;
+import commandexecution.dto.RunResults;
 
 public class DefaultOutputRedirect implements Redirect {
     @Override

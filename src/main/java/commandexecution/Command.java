@@ -1,5 +1,6 @@
 package commandexecution;
 
+import commandexecution.dto.RunResults;
 import commandexecution.redirect.Redirect;
 
 import java.util.List;

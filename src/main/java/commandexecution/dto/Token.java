@@ -1,4 +1,4 @@
-package commandexecution;
+package commandexecution.dto;
 
 public class Token {
     private String token;
