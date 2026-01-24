@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.Set;
 
 public class SystemCommandsCompleter implements Completer {
-    private final Set<String> commands;
+    private final List<String> commands;
     private String lastPrefix = "";
     private boolean waitSecond = false;
 
     public SystemCommandsCompleter() {
-        commands = new HashSet<>();
+        commands = new ArrayList<>();
         String path = System.getenv("PATH");
         if (path != null) {
             for (String dir : path.split(":")){
@@ -57,7 +57,7 @@ public class SystemCommandsCompleter implements Completer {
             String output = String.join("  ", matches);  // Two spaces
             lineReader.getTerminal().writer().println(output);
             lineReader.getTerminal().flush();
-            matches.sort(String::compareTo);
+//            matches.sort(String::compareTo);
 
             // Still add candidates for potential completion
             list.addAll(matches.stream().map(Candidate::new).toList());
