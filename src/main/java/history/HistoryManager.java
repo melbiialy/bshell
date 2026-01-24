@@ -1,14 +1,11 @@
 package history;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HistoryManager {
     private static Set<String > history;
     public HistoryManager() {
-        history = new HashSet<>();
+        history = new LinkedHashSet<>();
     }
     public void add(String command) {
         history.add(command);
