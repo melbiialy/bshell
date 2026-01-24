@@ -52,18 +52,14 @@ public class SystemCommandsCompleter implements Completer {
             list.add(new Candidate(matches.getFirst()));
         }
         else if (waitSecond){
-            // Use Candidate constructor with display parameter
-            for (String match : matches) {
-                list.add(new Candidate(
-                        match,           // value
-                        match,           // display
-                        null,            // group
-                        null,            // description
-                        null,            // suffix
-                        null,            // key
-                        true             // complete
-                ));
-            }
+            // Print manually with exact spacing
+            lineReader.getTerminal().writer().println();
+            String output = String.join("  ", matches);  // Two spaces
+            lineReader.getTerminal().writer().println(output);
+            lineReader.getTerminal().flush();
+
+            // Still add candidates for potential completion
+            list.addAll(matches.stream().map(Candidate::new).toList());
             reset("");
         }
         else {
