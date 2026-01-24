@@ -36,7 +36,7 @@ public class SystemCommandsCompleter implements Completer {
     public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
         String prefix = parsedLine.word();
         if (!prefix.equals(lastPrefix)) {
-            reset("");
+            reset();
         }
         List<String> matches = new ArrayList<>();
         for (String command : commands) {
@@ -49,14 +49,11 @@ public class SystemCommandsCompleter implements Completer {
             list.add(new Candidate(matches.getFirst()));
         }
         else if (waitSecond){
-            // Print manually with exact spacing
-            lineReader.getTerminal().writer().println(); // new line before matches
-            lineReader.getTerminal().writer().println(String.join("  ", matches)); // two spaces
+            lineReader.getTerminal().writer().println();
+            lineReader.getTerminal().writer().println(String.join("  ", matches));
             lineReader.getTerminal().flush();
-// Redraw prompt with original prefix
             lineReader.callWidget(LineReader.REDRAW_LINE);
             lineReader.callWidget(LineReader.REDISPLAY);
-            reset("");
         }
         else {
             lineReader.getTerminal().writer().print("\u0007");
@@ -66,8 +63,8 @@ public class SystemCommandsCompleter implements Completer {
         }
     }
 
-    private void reset(String prefix) {
-        lastPrefix = prefix;
+    private void reset() {
+
         waitSecond = false;
     }
 }

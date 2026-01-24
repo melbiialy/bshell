@@ -1,17 +1,9 @@
 package commandexecution;
 
-import builtincommands.CommandRegistry;
 
-import commandexecution.autocompletion.BuiltinCompleter;
-import commandexecution.autocompletion.SystemCommandsCompleter;
-import org.jline.reader.Completer;
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.impl.DefaultParser;
-import org.jline.reader.impl.completer.AggregateCompleter;
-import org.jline.terminal.TerminalBuilder;
 
-import java.io.IOException;
+import commandexecution.lineinputhandler.LineInputHandler;
+
 import java.util.List;
 
 
@@ -19,29 +11,19 @@ public class BShell {
     public static BPath path;
     public final CommandParser parser;
     private final CommandExecutor commandRunner;
+    private final LineInputHandler lineInputHandler;
 
-    public BShell(CommandParser parser) {
+    public BShell(CommandParser parser, LineInputHandler lineInputHandler) {
+        this.lineInputHandler = lineInputHandler;
         path = new BPath();
         this.parser = parser;
-        commandRunner = new CommandExecutor();
+        this.commandRunner = new CommandExecutor();
     }
 
+    public void start() {
 
-    public void start() throws IOException, InterruptedException {
-        DefaultParser parserJ = new DefaultParser();
-        parserJ.setEofOnUnclosedQuote(false);
-        parserJ.setEscapeChars(null);
-        org.jline.terminal.Terminal terminal = TerminalBuilder.builder().system(true).dumb(true).build();
-        CommandRegistry commandRegistry = new CommandRegistry();
-        Completer completer = new AggregateCompleter(new BuiltinCompleter(commandRegistry.getCommandNames()), new SystemCommandsCompleter());
-        LineReader lineReader = LineReaderBuilder.builder().terminal(terminal)
-                .parser(parserJ)
-                .completer(completer)
-                .build();
         while (true) {
-
-            String input = lineReader.readLine("$ ");
-//            System.out.println(input);
+            String input = lineInputHandler.handle();
             if (input.isBlank()) continue;
             List<Token> tokens = parser.parse(input);
             try {
