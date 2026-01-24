@@ -57,6 +57,7 @@ public class SystemCommandsCompleter implements Completer {
             String output = String.join("  ", matches);  // Two spaces
             lineReader.getTerminal().writer().println(output);
             lineReader.getTerminal().flush();
+            matches.sort(String::compareTo);
 
             // Still add candidates for potential completion
             list.addAll(matches.stream().map(Candidate::new).toList());
