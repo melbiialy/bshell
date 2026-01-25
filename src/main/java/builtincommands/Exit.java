@@ -8,7 +8,7 @@ public class Exit implements BuiltInCommand{
     @Override
     public RunResults operate(String... args) throws IOException, InterruptedException {
         if (System.getenv("HISTFILE") != null) {
-            new HistoryW().operate(System.getenv("HISTFILE"));
+            new HistoryAppend().operate(System.getenv("HISTFILE"));
         }
         System.exit(0);
         return null;
