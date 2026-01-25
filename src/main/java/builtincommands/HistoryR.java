@@ -19,9 +19,12 @@ public class HistoryR implements BuiltInCommand{
         Path filePath = BShell.path.getPath().resolve(args[0]);
         String line;
         BufferedReader reader = Files.newBufferedReader(filePath);
+        int limit = 0;
         while ((line = reader.readLine())!=null){
             HistoryManager.add(line);
+            limit++;
         }
+        HistoryManager.commandCount.put(args[0], limit);
         return new RunResults("", "");
     }
 }
