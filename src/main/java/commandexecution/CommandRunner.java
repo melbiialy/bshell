@@ -4,23 +4,23 @@ import builtincommands.CommandRegistry;
 import commandexecution.dto.RunResults;
 import exception.CommandNotFound;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 public class CommandRunner {
     private final CommandRegistry commandRegistry;
+
     public CommandRunner(CommandRegistry commandRegistry) {
         this.commandRegistry = commandRegistry;
     }
 
-    public RunResults run(List<String > tokens) throws IOException, InterruptedException {
+    public RunResults run(List<String> tokens) throws IOException, InterruptedException {
         if (CommandRegistry.containsCommand(tokens.getFirst())) {
-            String [] args = tokens.stream().skip(1).toArray(String[]::new);
+            String[] args = tokens.stream().skip(1).toArray(String[]::new);
             return commandRegistry.getCommand(tokens.getFirst()).operate(args);
         }
         try {
@@ -48,70 +48,92 @@ public class CommandRunner {
 
             return new RunResults(out, err);
 
-        }catch (IOException e) {
-            throw new CommandNotFound(tokens.getFirst()+ ": command not found");
+        } catch (IOException e) {
+            throw new CommandNotFound(tokens.getFirst() + ": command not found");
         }
     }
-    public RunResults runPipeline(List<Command> commands) throws IOException, InterruptedException {
-        List<Process> processes = new ArrayList<>();
 
-        for (int i = 0; i < commands.size(); i++) {
-            Command command = commands.get(i);
+    public RunResults runPipeline(List<Command> commands) throws IOException, InterruptedException {
+        if (commands.size() == 1) {
+            Command command = commands.get(0);
             ProcessBuilder pb = new ProcessBuilder(command.getTokens());
             pb.directory(BShell.path.getPath().toFile());
 
-            // Pipe input from previous process
-            if (i > 0) {
-                pb.redirectInput(ProcessBuilder.Redirect.PIPE);
-            }
-
-            // Pipe output to next process (except for last command)
-            if (i < commands.size() - 1) {
-                pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-            }
-
             Process process = pb.start();
-            processes.add(process);
+            process.waitFor();
 
-            // Connect previous process output to current process input
-            if (i > 0) {
-                Process prevProcess = processes.get(i - 1);
-                pipe(prevProcess.getInputStream(), process.getOutputStream());
+            String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+            String err = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+
+            return new RunResults(out, err);
+        }
+
+        List<ProcessBuilder> builders = new ArrayList<>();
+        for (Command command : commands) {
+            ProcessBuilder pb = new ProcessBuilder(command.getTokens());
+            pb.directory(BShell.path.getPath().toFile());
+            builders.add(pb);
+        }
+
+        List<Process> processes = ProcessBuilder.startPipeline(builders);
+        Process lastProcess = processes.get(processes.size() - 1);
+
+        // Capture output in separate threads
+        StringBuilder outBuilder = new StringBuilder();
+        StringBuilder errBuilder = new StringBuilder();
+
+        Thread outThread = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(lastProcess.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    outBuilder.append(line).append("\n");
+                }
+            } catch (IOException e) {
+                // Ignore
+            }
+        });
+
+        Thread errThread = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(lastProcess.getErrorStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    errBuilder.append(line).append("\n");
+                }
+            } catch (IOException e) {
+                // Ignore
+            }
+        });
+
+        outThread.start();
+        errThread.start();
+
+        // Wait for last process with a timeout
+        boolean finished = lastProcess.waitFor(10, TimeUnit.SECONDS);
+
+        if (!finished) {
+            // Last process didn't finish - force kill everything
+            for (Process p : processes) {
+                p.destroyForcibly();
+            }
+            lastProcess.waitFor();
+        }
+
+        outThread.join(1000);
+        errThread.join(1000);
+
+        // Force cleanup any remaining processes
+        for (Process p : processes) {
+            if (p.isAlive()) {
+                p.destroyForcibly();
             }
         }
 
-        // Wait for all processes and get output from last one
-        Process lastProcess = processes.get(processes.size() - 1);
-        lastProcess.waitFor();
-
-        String out = new String(lastProcess.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        String err = new String(lastProcess.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
-        if (out.endsWith("\n")) {
-            out = out.substring(0, out.length() - 1);
-        }
-        if (err.endsWith("\n")) {
-            err = err.substring(0, err.length() - 1);
-        }
-
-        // Clean up other processes
-        for (int i = 0; i < processes.size() - 1; i++) {
-            processes.get(i).waitFor();
-        }
+        String out = outBuilder.toString().trim();
+        String err = errBuilder.toString().trim();
 
         return new RunResults(out, err);
     }
-
-    private void pipe(InputStream input, OutputStream output) {
-        new Thread(() -> {
-            try {
-                input.transferTo(output);
-                output.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
-
-
-    }
+}
 
