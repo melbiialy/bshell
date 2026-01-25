@@ -35,7 +35,7 @@ public class History implements BuiltInCommand{
                 Files.writeString(path,HistoryManager.getHistory(HistoryManager.getHistorySize())
                         .stream()
                         .reduce("",
-                                (a, b) -> (a +"    "+ b) + "\n").trim());
+                                (a, b) -> (a +"    "+ b) + "\n"));
                 return new RunResults("", "");
             }
             else {
