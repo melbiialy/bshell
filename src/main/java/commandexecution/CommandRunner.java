@@ -84,8 +84,8 @@ public class CommandRunner {
         Process lastProcess = processes.get(processes.size() - 1);
         lastProcess.waitFor();
 
-        String out = new String(lastProcess.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
-        String err = new String(lastProcess.getErrorStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+        String out = new String(lastProcess.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String err = new String(lastProcess.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
 
         // Clean up other processes
         for (int i = 0; i < processes.size() - 1; i++) {
