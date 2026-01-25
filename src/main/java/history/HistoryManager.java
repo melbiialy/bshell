@@ -5,6 +5,7 @@ import java.util.*;
 public class HistoryManager {
     private static Set<String > history;
     private static int historySize = 0;
+    public static final Map<String , Integer> commandCount = new HashMap<>();
     public HistoryManager() {
         history = new LinkedHashSet<>();
     }

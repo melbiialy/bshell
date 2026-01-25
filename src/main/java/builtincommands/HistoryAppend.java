@@ -1,6 +1,7 @@
 package builtincommands;
 
 import commandexecution.dto.RunResults;
+import history.HistoryManager;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -13,9 +14,10 @@ public class HistoryAppend implements BuiltInCommand{
             return new RunResults("", "history: missing operand");
         }
         String filePath = args[0];
+        int startIndex = HistoryManager.commandCount.get(filePath);
         Path file = Paths.get(filePath);
         java.nio.file.Files.writeString(file,
-                history.HistoryManager.getHistory(history.HistoryManager.getHistorySize())
+                history.HistoryManager.getHistory(history.HistoryManager.getHistorySize()-startIndex)
                         .stream()
                         .map(s -> s.substring(s.indexOf(" ") + 2))
                         .reduce("",
