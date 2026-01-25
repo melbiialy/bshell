@@ -130,8 +130,14 @@ public class CommandRunner {
             }
         }
 
-        String out = outBuilder.toString().trim();
-        String err = errBuilder.toString().trim();
+        String out = outBuilder.toString();
+        String err = errBuilder.toString();
+        if (out.endsWith("\n")) {
+            out = out.substring(0, out.length() - 1);
+        }
+        if (err.endsWith("\n")) {
+            err = err.substring(0, err.length() - 1);
+        }
 
         return new RunResults(out, err);
     }
