@@ -34,6 +34,7 @@ public class History implements BuiltInCommand{
                 Path path = Path.of(filePath);
                 Files.writeString(path,HistoryManager.getHistory(HistoryManager.getHistorySize())
                         .stream()
+                                .map(s -> s.substring(s.indexOf(" ")+2))
                         .reduce("",
                                 (a, b) -> (a +"    "+ b) + "\n"));
                 return new RunResults("", "");
