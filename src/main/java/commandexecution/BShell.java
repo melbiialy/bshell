@@ -27,7 +27,9 @@ public class BShell {
     }
 
     public void start() throws IOException, InterruptedException {
-        new HistoryR().operate(System.getenv("HISTFILE"));
+        if (System.getenv("HISTFILE") != null) {
+            new HistoryR().operate(System.getenv("HISTFILE"));
+        }
         while (true) {
             String input = lineInputHandler.handle();
             if (input.isBlank()) continue;
