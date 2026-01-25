@@ -10,17 +10,18 @@ import java.nio.file.Path;
 public class HistoryW implements BuiltInCommand{
     @Override
     public RunResults operate(String... args) throws IOException, InterruptedException {
+        HistoryManager historyManager = HistoryManager.getInstance();
         if (args.length <1){
             return new RunResults("", "history: missing operand");
         }
         String filePath = args[0];
         Path path = Path.of(filePath);
-        Files.writeString(path, HistoryManager.getHistory(HistoryManager.getHistorySize())
+        Files.writeString(path, historyManager.getHistory(historyManager.getHistorySize())
                 .stream()
                 .map(s -> s.substring(s.indexOf(" ")+2))
                 .reduce("",
                         (a, b) -> (a + b) + "\n"));
-        HistoryManager.commandCount.put(filePath, HistoryManager.getHistorySize());
+        historyManager.updatePublish(filePath, historyManager.getHistorySize());
         return new RunResults("", "");
     }
 }

@@ -13,6 +13,7 @@ public class HistoryR implements BuiltInCommand{
 
     @Override
     public RunResults operate(String... args) throws IOException, InterruptedException {
+        HistoryManager historyManager = HistoryManager.getInstance();
         if (args.length < 1) {
             return new RunResults("", "history: missing operand");
         }
@@ -21,10 +22,10 @@ public class HistoryR implements BuiltInCommand{
         BufferedReader reader = Files.newBufferedReader(filePath);
         int limit = 0;
         while ((line = reader.readLine())!=null){
-            HistoryManager.add(line);
+            historyManager.addCommand(line);
             limit++;
         }
-        HistoryManager.commandCount.put(args[0], limit);
+        historyManager.updatePublish(args[0], limit);
         return new RunResults("", "");
     }
 }

@@ -23,7 +23,7 @@ public class BShell {
         path = new BPath();
         this.parser = parser;
         this.commandRunner = new CommandExecutor();
-        this.historyManager = new HistoryManager();
+        this.historyManager = HistoryManager.getInstance();
     }
 
     public void start() throws IOException, InterruptedException {
@@ -34,7 +34,7 @@ public class BShell {
             String input = lineInputHandler.handle();
             if (input.isBlank()) continue;
             List<Token> tokens = parser.parse(input);
-            historyManager.add(input);
+            historyManager.addCommand(input);
             try {
                 commandRunner.execute(tokens);
             } catch (Exception e) {

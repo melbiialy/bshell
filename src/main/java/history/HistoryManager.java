@@ -3,25 +3,43 @@ package history;
 import java.util.*;
 
 public class HistoryManager {
-    private static Set<String > history;
-    private static int historySize = 0;
-    public static final Map<String , Integer> commandCount = new HashMap<>();
+    private final HistoryStorage historyStorage;
+    private static volatile HistoryManager instance;
+
     public HistoryManager() {
-        history = new LinkedHashSet<>();
+        this.historyStorage = new HistoryStorage();
     }
-    public static void add(String command) {
-        history.add((historySize+1) + "  " +command);
-        historySize++;
+
+    public  int getPublishedNumber(String filePath) {
+        return historyStorage.getFileHistoryCount(filePath);
     }
-    public static Set<String> getHistory(int limit) {
-        if (historySize < limit) limit = 0;
-        List<String> historyList = new ArrayList<>(history).subList(historySize-limit,historySize);
-        return new LinkedHashSet<>(historyList);
+
+    public void addCommand(String command) {
+        historyStorage.add(command);
     }
-    public static void clearHistory() {
-        history.clear();
+
+    public Set<String> getHistory(int limit) {
+        return historyStorage.getHistory(limit);
     }
-    public static int getHistorySize() {
-        return historySize;
+    public int getHistorySize() {
+        return historyStorage.getHistorySize();
+    }
+    public static HistoryManager getInstance() {
+        if (instance == null) {
+            synchronized (HistoryManager.class) {
+                if (instance == null) {
+                    instance = new HistoryManager();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public boolean isPublished(String filePath) {
+        return historyStorage.isContains(filePath);
+    }
+
+    public void updatePublish(String filePath, int historySize) {
+        historyStorage.incrementFileHistoryCount(filePath, historySize);
     }
 }

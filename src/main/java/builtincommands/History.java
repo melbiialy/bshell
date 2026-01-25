@@ -24,9 +24,10 @@ public class History implements BuiltInCommand{
 
     @Override
     public RunResults operate(String... args) throws IOException, InterruptedException {
-        AtomicInteger counter = new AtomicInteger(1);
-        int limit = HistoryManager.getHistorySize();
-        String filePath;
+        HistoryManager historyManager = HistoryManager.getInstance();
+
+        int limit = historyManager.getHistorySize();
+
         if (args.length>1){
             if (commands.containsKey(args[0])){
                 return commands.get(args[0]).operate(args[1]);
@@ -44,7 +45,7 @@ public class History implements BuiltInCommand{
             }
         }
 
-        String history = HistoryManager.getHistory(limit)
+        String history = historyManager.getHistory(limit)
                 .stream()
                 .reduce("",
                         (a, b) -> (a +"    "+ b) + "\n");

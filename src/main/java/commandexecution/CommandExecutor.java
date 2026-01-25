@@ -18,8 +18,15 @@ public class CommandExecutor {
     }
 
     public void execute(List<Token> tokens) throws IOException, InterruptedException {
-        Command command = redirectHandler.handle(tokens);
+        Command command = redirectHandler.handle(tokens,0);
+
         RunResults output = commandRunner.run(command.getTokens());
+        while (command.getChild() != null) {
+            command = command.getChild();
+            System.out.println(command.getTokens());
+            output = commandRunner.runWithInput(command.getTokens(), output);
+        }
+
         command.redirect(output);
     }
 

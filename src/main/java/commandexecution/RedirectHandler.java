@@ -8,13 +8,19 @@ import java.util.List;
 
 public class RedirectHandler {
 
-    public Command handle(List<Token> tokens) {
+    public Command handle(List<Token> tokens,int index) {
         List<String > executionTokens = new ArrayList<>();
         List<String > redirectTokens = new ArrayList<>();
         boolean flag = false;
-        int i = 0;
+        int i = index;
         Redirect redirect = null;
+        Command command = new Command();
         for (Token token : tokens) {
+            i++;
+            if (token.getToken().equals("|")){
+               command.setChild(this.handle(tokens.subList(i, tokens.size()),i));
+               break;
+            }
             if (token.getToken().contains(">>")){
                 flag = true;
                 redirect = new AppendRedirectStdout();
@@ -56,6 +62,9 @@ public class RedirectHandler {
             executionTokens.add(token.getToken());}
         }
         if (redirect == null) redirect = new DefaultOutputRedirect();
-        return new Command(executionTokens,redirectTokens,redirect);
+        command.setRedirect(redirect);
+        command.setTokens(executionTokens);
+        command.setRedirectTokens(redirectTokens);
+        return command;
     }
 }
