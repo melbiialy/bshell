@@ -8,7 +8,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 public class CommandRunner {
@@ -28,23 +29,43 @@ public class CommandRunner {
             pb.directory(BShell.path.getPath().toFile());
             Process process = pb.start();
 
+            // Read streams concurrently to avoid deadlock
+            CompletableFuture<byte[]> stdoutFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return process.getInputStream().readAllBytes();
+                } catch (IOException e) {
+                    return new byte[0];
+                }
+            });
+            CompletableFuture<byte[]> stderrFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return process.getErrorStream().readAllBytes();
+                } catch (IOException e) {
+                    return new byte[0];
+                }
+            });
 
             process.waitFor();
 
-            String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            String err = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
+            String out = "";
+            String err = "";
+            try {
+                byte[] outBytes = stdoutFuture.get();
+                byte[] errBytes = stderrFuture.get();
+                out = new String(outBytes, StandardCharsets.UTF_8);
+                err = new String(errBytes, StandardCharsets.UTF_8);
+            } catch (ExecutionException e) {
+                // Use empty strings if reading fails
+            }
 
             if (err.isEmpty()) err = "";
             else {
                 err = err.trim();
-
             }
             if (out.isEmpty()) out = "";
             else {
                 out = out.trim();
-
             }
-
 
             return new RunResults(out, err);
 
@@ -58,88 +79,121 @@ public class CommandRunner {
             Command command = commands.get(0);
             ProcessBuilder pb = new ProcessBuilder(command.getTokens());
             pb.directory(BShell.path.getPath().toFile());
-
-            Process process = pb.start();
-            process.waitFor();
-
-            String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
-            String err = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8).trim();
-
-            return new RunResults(out, err);
-        }
-
-        List<ProcessBuilder> builders = new ArrayList<>();
-        for (Command command : commands) {
-            ProcessBuilder pb = new ProcessBuilder(command.getTokens());
-            pb.directory(BShell.path.getPath().toFile());
-            builders.add(pb);
-        }
-
-        List<Process> processes = ProcessBuilder.startPipeline(builders);
-        Process lastProcess = processes.get(processes.size() - 1);
-
-        // Capture output in separate threads
-        StringBuilder outBuilder = new StringBuilder();
-        StringBuilder errBuilder = new StringBuilder();
-
-        Thread outThread = new Thread(() -> {
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(lastProcess.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    outBuilder.append(line).append("\n");
+            Process p = pb.start();
+            
+            // Read streams incrementally
+            ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+            ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
+            
+            CompletableFuture<Void> stdoutFuture = CompletableFuture.runAsync(() -> {
+                try (InputStream is = p.getInputStream()) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        stdoutBuffer.write(buffer, 0, bytesRead);
+                    }
+                } catch (IOException e) {
+                    // Stream closed
                 }
-            } catch (IOException e) {
+            });
+            
+            CompletableFuture<Void> stderrFuture = CompletableFuture.runAsync(() -> {
+                try (InputStream is = p.getErrorStream()) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        stderrBuffer.write(buffer, 0, bytesRead);
+                    }
+                } catch (IOException e) {
+                    // Stream closed
+                }
+            });
+            
+            p.waitFor();
+            
+            try {
+                stdoutFuture.get();
+                stderrFuture.get();
+            } catch (ExecutionException e) {
                 // Ignore
             }
-        });
+            
+            return new RunResults(
+                    stdoutBuffer.toString(StandardCharsets.UTF_8).trim(),
+                    stderrBuffer.toString(StandardCharsets.UTF_8).trim()
+            );
+        }
 
-        Thread errThread = new Thread(() -> {
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(lastProcess.getErrorStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    errBuilder.append(line).append("\n");
+        // Use shell to handle pipeline - it properly handles SIGPIPE
+        // Build the pipeline command by joining tokens
+        StringBuilder pipelineCmd = new StringBuilder();
+        for (int i = 0; i < commands.size(); i++) {
+            if (i > 0) pipelineCmd.append(" | ");
+            pipelineCmd.append(String.join(" ", commands.get(i).getTokens()));
+        }
+        
+        List<String> shellCmd = new ArrayList<>();
+        shellCmd.add("/bin/sh");
+        shellCmd.add("-c");
+        shellCmd.add(pipelineCmd.toString());
+
+        ProcessBuilder pb = new ProcessBuilder(shellCmd);
+        pb.directory(BShell.path.getPath().toFile());
+        Process p = pb.start();
+        
+        // Read streams incrementally - critical for "tail -f | head" cases
+        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
+        
+        CompletableFuture<Void> stdoutFuture = CompletableFuture.runAsync(() -> {
+            try (InputStream is = p.getInputStream()) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    stdoutBuffer.write(buffer, 0, bytesRead);
                 }
             } catch (IOException e) {
-                // Ignore
+                // Stream closed
             }
         });
-
-        outThread.start();
-        errThread.start();
-
-        // Wait for last process with a timeout
-        boolean finished = lastProcess.waitFor(10, TimeUnit.SECONDS);
-
-        if (!finished) {
-            // Last process didn't finish - force kill everything
-            for (Process p : processes) {
-                p.destroyForcibly();
+        
+        CompletableFuture<Void> stderrFuture = CompletableFuture.runAsync(() -> {
+            try (InputStream is = p.getErrorStream()) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    stderrBuffer.write(buffer, 0, bytesRead);
+                }
+            } catch (IOException e) {
+                // Stream closed
             }
-            lastProcess.waitFor();
+        });
+        
+        // Wait for process to complete
+        // The shell will properly handle SIGPIPE when head exits
+        p.waitFor();
+        
+        // Wait for streams to finish reading
+        try {
+            stdoutFuture.get();
+            stderrFuture.get();
+        } catch (ExecutionException e) {
+            // Ignore execution exceptions
         }
 
-        outThread.join(1000);
-        errThread.join(1000);
-
-        // Force cleanup any remaining processes
-        for (Process p : processes) {
-            if (p.isAlive()) {
-                p.destroyForcibly();
-            }
-        }
-
-        String out = outBuilder.toString();
-        String err = errBuilder.toString();
+       String out = stdoutBuffer.toString(StandardCharsets.UTF_8);
         if (out.endsWith("\n")) {
             out = out.substring(0, out.length() - 1);
         }
+        String err = stderrBuffer.toString(StandardCharsets.UTF_8);
         if (err.endsWith("\n")) {
             err = err.substring(0, err.length() - 1);
         }
 
-        return new RunResults(out, err);
+        return new RunResults(
+                out,
+                err
+        );
     }
 }
 

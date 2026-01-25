@@ -8,6 +8,8 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 public class CommandExecutor {
     private final CommandRunner commandRunner;
@@ -18,7 +20,7 @@ public class CommandExecutor {
         this.redirectHandler = new RedirectHandler();
     }
 
-    public void execute(List<Token> tokens) throws IOException, InterruptedException {
+    public void execute(List<Token> tokens) throws IOException, InterruptedException, ExecutionException, TimeoutException {
         Command command = redirectHandler.handle(tokens,0);
 
         RunResults output;
