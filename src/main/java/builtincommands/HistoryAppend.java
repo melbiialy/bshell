@@ -27,6 +27,7 @@ public class HistoryAppend implements BuiltInCommand{
                                 (a, b) -> (a + b) + "\n"),
                 java.nio.file.StandardOpenOption.CREATE,
                 java.nio.file.StandardOpenOption.APPEND);
+        HistoryManager.commandCount.put(filePath, HistoryManager.getHistorySize());
         return new RunResults("", "");
     }
 }

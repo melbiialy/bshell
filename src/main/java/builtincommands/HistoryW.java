@@ -20,6 +20,7 @@ public class HistoryW implements BuiltInCommand{
                 .map(s -> s.substring(s.indexOf(" ")+2))
                 .reduce("",
                         (a, b) -> (a + b) + "\n"));
+        HistoryManager.commandCount.put(filePath, HistoryManager.getHistorySize());
         return new RunResults("", "");
     }
 }
