@@ -2,10 +2,12 @@ package commandexecution;
 
 
 
+import builtincommands.HistoryR;
 import commandexecution.dto.Token;
 import commandexecution.lineinputhandler.LineInputHandler;
 import history.HistoryManager;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -24,8 +26,8 @@ public class BShell {
         this.historyManager = new HistoryManager();
     }
 
-    public void start() {
-
+    public void start() throws IOException, InterruptedException {
+        new HistoryR().operate(System.getenv("HISTFILE"));
         while (true) {
             String input = lineInputHandler.handle();
             if (input.isBlank()) continue;
