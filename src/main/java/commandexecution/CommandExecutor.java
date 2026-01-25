@@ -6,6 +6,7 @@ import commandexecution.dto.Token;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandExecutor {
@@ -20,11 +21,20 @@ public class CommandExecutor {
     public void execute(List<Token> tokens) throws IOException, InterruptedException {
         Command command = redirectHandler.handle(tokens,0);
 
-        RunResults output = commandRunner.run(command.getTokens());
+        RunResults output;
+        List<Command> commands = new ArrayList<>();
+        commands.add(command);
         while (command.getChild() != null) {
+
             command = command.getChild();
-            System.out.println(command.getTokens());
-            output = commandRunner.runWithInput(command.getTokens(), output);
+            commands.add(command);
+        }
+        if (commands.size() == 1){
+            output = commandRunner.run(commands.getFirst().getTokens());
+        } else if (commands.size() > 1) {
+            output = commandRunner.runPipeline(commands);
+        } else {
+            output = commandRunner.run(command.getTokens());
         }
 
         command.redirect(output);
