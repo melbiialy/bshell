@@ -36,7 +36,7 @@ public class History implements BuiltInCommand{
                         .stream()
                                 .map(s -> s.substring(s.indexOf(" ")+2))
                         .reduce("",
-                                (a, b) -> (a +"    "+ b) + "\n"));
+                                (a, b) -> (a + b) + "\n"));
                 return new RunResults("", "");
             }
             else {
