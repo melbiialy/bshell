@@ -8,41 +8,42 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class History implements BuiltInCommand{
+    private final Map<String, BuiltInCommand> commands;
+    public History() {
+        this.commands = new HashMap<>();
+        commands.put("-r", new HistoryR());
+        commands.put("-w", new HistoryW());
+        commands.put("-a", new HistoryAppend());
+    }
 
     @Override
     public RunResults operate(String... args) throws IOException, InterruptedException {
         AtomicInteger counter = new AtomicInteger(1);
         int limit = HistoryManager.getHistorySize();
         String filePath;
-        if (args.length > 0) {
-            if (args[0].equals("-r")){
-                filePath = args[1];
-                File file = new File(filePath);
-                BufferedReader br = java.nio.file.Files.newBufferedReader(Path.of(file.getAbsolutePath()));
-                String line;
-                while ((line = br.readLine()) != null) {
-                    HistoryManager.add(line);
-                }
-                return new RunResults("", "");
+        if (args.length>1){
+            if (commands.containsKey(args[0])){
+                return commands.get(args[0]).operate(args[1]);
+            } else {
+                return new RunResults("", "history: invalid option " + args[0]);
             }
-            else if (args[0].equals("-w")){
-                filePath = args[1];
-                Path path = Path.of(filePath);
-                Files.writeString(path,HistoryManager.getHistory(HistoryManager.getHistorySize())
-                        .stream()
-                                .map(s -> s.substring(s.indexOf(" ")+2))
-                        .reduce("",
-                                (a, b) -> (a + b) + "\n"));
-                return new RunResults("", "");
-            }
-            else {
+        } else if (args.length==1){
+            try {
                 limit = Integer.parseInt(args[0]);
+                if (limit < 0) {
+                    return new RunResults("", "history: invalid number: " + args[0]);
+                }
+            } catch (NumberFormatException e) {
+                return new RunResults("", "history: invalid number: " + args[0]);
             }
         }
+
         String history = HistoryManager.getHistory(limit)
                 .stream()
                 .reduce("",
