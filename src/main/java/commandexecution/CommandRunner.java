@@ -86,6 +86,12 @@ public class CommandRunner {
 
         String out = new String(lastProcess.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         String err = new String(lastProcess.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
+        if (out.endsWith("\n")) {
+            out = out.substring(0, out.length() - 1);
+        }
+        if (err.endsWith("\n")) {
+            err = err.substring(0, err.length() - 1);
+        }
 
         // Clean up other processes
         for (int i = 0; i < processes.size() - 1; i++) {
