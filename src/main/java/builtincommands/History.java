@@ -6,6 +6,7 @@ import history.HistoryManager;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -26,6 +27,15 @@ public class History implements BuiltInCommand{
                 while ((line = br.readLine()) != null) {
                     HistoryManager.add(line);
                 }
+                return new RunResults("", "");
+            }
+            else if (args[0].equals("-w")){
+                filePath = args[1];
+                Path path = Path.of(filePath);
+                Files.writeString(path,HistoryManager.getHistory(HistoryManager.getHistorySize())
+                        .stream()
+                        .reduce("",
+                                (a, b) -> (a +"    "+ b) + "\n").trim());
                 return new RunResults("", "");
             }
             else {
