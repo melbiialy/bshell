@@ -14,7 +14,10 @@ public class HistoryAppend implements BuiltInCommand{
             return new RunResults("", "history: missing operand");
         }
         String filePath = args[0];
-        int startIndex = HistoryManager.commandCount.get(filePath);
+        int startIndex = 0;
+        if (HistoryManager.commandCount.containsKey(filePath)) {
+            startIndex = HistoryManager.commandCount.get(filePath);
+        }
         Path file = Paths.get(filePath);
         java.nio.file.Files.writeString(file,
                 history.HistoryManager.getHistory(history.HistoryManager.getHistorySize()-startIndex)
