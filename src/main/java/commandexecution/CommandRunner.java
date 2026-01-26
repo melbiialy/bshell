@@ -99,8 +99,8 @@ public class CommandRunner {
                                             .toArray(String[]::new)
                             );
 
-            lastStdout = builtinResult.output();
-            lastStderr = builtinResult.error();
+            lastStdout = builtinResult.output()+"\n";
+            lastStderr = builtinResult.error()+"\n";
 
             currentInput = new ByteArrayInputStream(
                     lastStdout.getBytes(StandardCharsets.UTF_8)
