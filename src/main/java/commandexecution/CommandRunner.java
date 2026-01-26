@@ -8,7 +8,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
+// todo refactor this
 public class CommandRunner {
     private final CommandRegistry commandRegistry;
 
@@ -16,13 +16,11 @@ public class CommandRunner {
         this.commandRegistry = commandRegistry;
     }
 
-    /* =========================
-       Single command execution
-       ========================= */
+
     public RunResults run(List<String> tokens) throws IOException, InterruptedException {
-        if (CommandRegistry.containsCommand(tokens.get(0))) {
+        if (CommandRegistry.containsCommand(tokens.getFirst())) {
             String[] args = tokens.stream().skip(1).toArray(String[]::new);
-            return commandRegistry.getCommand(tokens.get(0)).operate(args);
+            return commandRegistry.getCommand(tokens.getFirst()).operate(args);
         }
 
         try {
@@ -53,24 +51,20 @@ public class CommandRunner {
             return new RunResults(out, err);
 
         } catch (IOException e) {
-            throw new CommandNotFound(tokens.get(0) + ": command not found");
+            throw new CommandNotFound(tokens.getFirst() + ": command not found");
         }
     }
 
-    /* =========================
-       Pipeline execution
-       ========================= */
+
     public RunResults runResults(List<Command> commands) throws IOException, InterruptedException {
-        // check if any builtin exists
         boolean hasBuiltin = commands.stream().anyMatch(c ->
-                CommandRegistry.containsCommand(c.getTokens().get(0))
+                CommandRegistry.containsCommand(c.getTokens().getFirst())
         );
 
         if (hasBuiltin) {
-            return runIt(commands); // handle pipeline with builtins
+            return runIt(commands);
         }
 
-        // No builtin -> original OS pipeline logic
         List<ProcessBuilder> builders = new ArrayList<>();
         for (Command command : commands) {
             ProcessBuilder pb = new ProcessBuilder(command.getTokens());
@@ -79,18 +73,16 @@ public class CommandRunner {
             builders.add(pb);
         }
 
-        builders.get(0).redirectInput(ProcessBuilder.Redirect.INHERIT);
-        builders.get(builders.size() - 1).redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        builders.getFirst().redirectInput(ProcessBuilder.Redirect.INHERIT);
+        builders.getLast().redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
         List<Process> processes = ProcessBuilder.startPipeline(builders);
-        processes.get(processes.size() - 1).waitFor();
+        processes.getLast().waitFor();
 
         return new RunResults("", "");
     }
 
-    /* =========================
-       Pipeline with builtin support
-       ========================= */
+
     private RunResults runIt(List<Command> commands) throws IOException, InterruptedException {
         InputStream currentInput = System.in;
         String lastStdout = "";
@@ -98,7 +90,7 @@ public class CommandRunner {
         List<Command> osSegment = new ArrayList<>();
 
         for (Command cmd : commands) {
-            boolean isBuiltin = CommandRegistry.containsCommand(cmd.getTokens().get(0));
+            boolean isBuiltin = CommandRegistry.containsCommand(cmd.getTokens().getFirst());
 
             if (!isBuiltin) {
                 osSegment.add(cmd);

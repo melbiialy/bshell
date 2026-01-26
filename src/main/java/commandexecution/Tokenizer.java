@@ -57,13 +57,12 @@ public class Tokenizer {
 
     private static Token buildToken(String tokenStr) {
         Token token = new Token();
-        String value = tokenStr;
 
-        if (value.startsWith("'") && value.endsWith("'") && value.length() > 1) {
+        if (tokenStr.startsWith("'") && tokenStr.endsWith("'") && tokenStr.length() > 1) {
             token.setQuoted(true);
             token.setDoubleQuoted(false);
 
-        } else if (value.startsWith("\"") && value.endsWith("\"") && value.length() > 1) {
+        } else if (tokenStr.startsWith("\"") && tokenStr.endsWith("\"") && tokenStr.length() > 1) {
             token.setQuoted(false);
             token.setDoubleQuoted(true);
 
@@ -73,7 +72,7 @@ public class Tokenizer {
 
         }
 
-        token.setToken(value);
+        token.setToken(tokenStr);
         return token;
     }
 }

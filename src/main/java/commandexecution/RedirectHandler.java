@@ -5,7 +5,7 @@ import commandexecution.redirect.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
+// todo make it more simpler
 public class RedirectHandler {
 
     public Command handle(List<Token> tokens, int index) {
