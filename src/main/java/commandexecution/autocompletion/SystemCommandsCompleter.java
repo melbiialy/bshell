@@ -59,11 +59,9 @@ public class SystemCommandsCompleter implements Completer {
         }
 
         if (waitSecond) {
-            lineReader.getTerminal().writer().println();
-            lineReader.getTerminal().writer().println(String.join("  ", matches));
-            lineReader.getTerminal().flush();
-            lineReader.callWidget(LineReader.REDRAW_LINE);
-            lineReader.callWidget(LineReader.REDISPLAY);
+            for (String command : matches) {
+                list.add(new Candidate(command));
+            }
             waitSecond = false;
             lastPrefix = "";
         } else {
