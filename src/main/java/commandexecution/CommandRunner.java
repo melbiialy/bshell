@@ -21,61 +21,51 @@ public class CommandRunner {
        Single command execution
        ========================= */
     public RunResults run(List<String> tokens) throws IOException, InterruptedException {
-        if (CommandRegistry.containsCommand(tokens.getFirst())) {
+        if (CommandRegistry.containsCommand(tokens.get(0))) {
             String[] args = tokens.stream().skip(1).toArray(String[]::new);
-            return commandRegistry.getCommand(tokens.getFirst()).operate(args);
+            return commandRegistry.getCommand(tokens.get(0)).operate(args);
         }
 
-        try {
-            boolean flag = false;
-            for (String s : tokens) {
-                if (s.contains("-f")) {
-                    flag = true;
+        boolean flag = tokens.stream().anyMatch(s -> s.contains("-f"));
+
+        ProcessBuilder pb = new ProcessBuilder(tokens);
+        pb.directory(BShell.path.getPath().toFile());
+        Process process = pb.start();
+
+        if (flag) {
+            Thread thread = new Thread(() -> {
+                try {
+                    process.getInputStream().transferTo(System.out);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-            }
-
-            ProcessBuilder pb = new ProcessBuilder(tokens);
-            pb.directory(BShell.path.getPath().toFile());
-            Process process = pb.start();
-
-            if (flag) {
-                Thread thread = new Thread(() -> {
-                    try {
-                        process.getInputStream().transferTo(System.out);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-                thread.start();
-                thread.join();
-                return new RunResults("", "");
-            }
-
-            process.waitFor();
-
-            String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
-            String err = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8).trim();
-
-            return new RunResults(out, err);
-
-        } catch (IOException e) {
-            throw new CommandNotFound(tokens.getFirst() + ": command not found");
+            });
+            thread.start();
+            thread.join();
+            return new RunResults("", "");
         }
+
+        process.waitFor();
+
+        String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+        String err = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+
+        return new RunResults(out, err);
     }
 
     /* =========================
-       Pipeline execution with builtin support
+       Pipeline execution with streaming support
        ========================= */
     public RunResults runResults(List<Command> commands) throws IOException, InterruptedException {
 
-        InputStream currentInput = System.in;
+        InputStream currentInput = System.in; // feed for the first segment
         String lastStdout = "";
         String lastStderr = "";
 
         List<Command> osSegment = new ArrayList<>();
 
         for (Command cmd : commands) {
-            boolean isBuiltin = CommandRegistry.containsCommand(cmd.getTokens().getFirst());
+            boolean isBuiltin = CommandRegistry.containsCommand(cmd.getTokens().get(0));
 
             if (!isBuiltin) {
                 osSegment.add(cmd);
@@ -83,42 +73,35 @@ public class CommandRunner {
             }
 
             // ---- BUILTIN FOUND ----
-            // 1) Run previous OS segment if there is one
             if (!osSegment.isEmpty()) {
-                RunResults res = runOsPipeline(osSegment, currentInput);
+                RunResults res = runOsPipelineStreaming(osSegment, currentInput);
                 lastStdout = res.output();
                 lastStderr = res.error();
-
-                // Feed output to builtin
-                currentInput = new ByteArrayInputStream(lastStdout.getBytes(StandardCharsets.UTF_8));
+                currentInput = new ByteArrayInputStream((lastStdout + "\n").getBytes(StandardCharsets.UTF_8));
                 osSegment.clear();
             }
 
-            // 2) Run builtin
+            // ---- run builtin ----
             RunResults builtinResult = commandRegistry
-                    .getCommand(cmd.getTokens().getFirst())
+                    .getCommand(cmd.getTokens().get(0))
                     .operate(cmd.getTokens().stream().skip(1).toArray(String[]::new));
 
             lastStdout = builtinResult.output();
             lastStderr = builtinResult.error();
 
-            // Ensure newline at the end so downstream OS commands like 'wc' work correctly
-            if (!lastStdout.endsWith("\n")) {
-                lastStdout += "\n";
-            }
+            if (!lastStdout.endsWith("\n")) lastStdout += "\n";
 
-            // Feed builtin output to next OS segment
             currentInput = new ByteArrayInputStream(lastStdout.getBytes(StandardCharsets.UTF_8));
         }
 
         // ---- FINAL OS SEGMENT ----
         if (!osSegment.isEmpty()) {
-            RunResults res = runOsPipeline(osSegment, currentInput);
+            RunResults res = runOsPipelineStreaming(osSegment, currentInput);
             lastStdout = res.output();
             lastStderr = res.error();
         }
 
-        // ---- strip trailing newlines ----
+        // strip trailing newlines
         while (lastStdout.endsWith("\n")) lastStdout = lastStdout.substring(0, lastStdout.length() - 1);
         while (lastStderr.endsWith("\n")) lastStderr = lastStderr.substring(0, lastStderr.length() - 1);
 
@@ -126,41 +109,82 @@ public class CommandRunner {
     }
 
     /* =========================
-       OS-only pipeline runner (original logic)
+       OS pipeline runner with streaming
        ========================= */
-    private RunResults runOsPipeline(List<Command> commands, InputStream input) throws IOException, InterruptedException {
+    private RunResults runOsPipelineStreaming(List<Command> commands, InputStream input)
+            throws IOException, InterruptedException {
 
+        List<Process> processes = new ArrayList<>();
         List<ProcessBuilder> builders = new ArrayList<>();
-        for (Command command : commands) {
-            ProcessBuilder pb = new ProcessBuilder(command.getTokens());
+
+        for (Command cmd : commands) {
+            ProcessBuilder pb = new ProcessBuilder(cmd.getTokens());
             pb.directory(BShell.path.getPath().toFile());
             pb.redirectError(ProcessBuilder.Redirect.PIPE);
             builders.add(pb);
         }
 
-        // input redirection
-        builders.get(0).redirectInput(input == System.in ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.PIPE);
+        // Build pipeline
+        for (int i = 0; i < builders.size(); i++) {
+            ProcessBuilder pb = builders.get(i);
+            if (i == 0) {
+                pb.redirectInput(input == System.in ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.PIPE);
+            }
+            if (i == builders.size() - 1) {
+                pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+            }
+        }
 
-        // output capture
-        builders.get(builders.size() - 1).redirectOutput(ProcessBuilder.Redirect.PIPE);
-
-        List<Process> processes = ProcessBuilder.startPipeline(builders);
+        // Start pipeline
+        processes = ProcessBuilder.startPipeline(builders);
         Process last = processes.get(processes.size() - 1);
 
-        // feed input if coming from builtin
+        // Feed input from builtin if needed
         if (input != System.in) {
             try (OutputStream os = processes.get(0).getOutputStream()) {
                 input.transferTo(os);
             }
         }
 
+        // Stream output while the processes are running (important for tail -f | head)
+        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
+
+        Thread outThread = new Thread(() -> {
+            try {
+                InputStream in = last.getInputStream();
+                byte[] buf = new byte[1024];
+                int n;
+                while ((n = in.read(buf)) != -1) {
+                    stdoutBuffer.write(buf, 0, n);
+                    System.out.write(buf, 0, n); // optional: print live output
+                    System.out.flush();
+                }
+            } catch (IOException ignored) {}
+        });
+
+        Thread errThread = new Thread(() -> {
+            try {
+                InputStream err = last.getErrorStream();
+                byte[] buf = new byte[1024];
+                int n;
+                while ((n = err.read(buf)) != -1) {
+                    stderrBuffer.write(buf, 0, n);
+                    System.err.write(buf, 0, n);
+                    System.err.flush();
+                }
+            } catch (IOException ignored) {}
+        });
+
+        outThread.start();
+        errThread.start();
+
         last.waitFor();
+        outThread.join();
+        errThread.join();
 
-        String out = new String(last.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        String err = new String(last.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
-
-        while (out.endsWith("\n")) out = out.substring(0, out.length() - 1);
-        while (err.endsWith("\n")) err = err.substring(0, err.length() - 1);
+        String out = stdoutBuffer.toString(StandardCharsets.UTF_8);
+        String err = stderrBuffer.toString(StandardCharsets.UTF_8);
 
         return new RunResults(out, err);
     }
