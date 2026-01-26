@@ -171,6 +171,12 @@ public class CommandRunner {
                 last.getErrorStream().readAllBytes(),
                 StandardCharsets.UTF_8
         );
+        if (out.endsWith("\n")) {
+            out = out.substring(0, out.length() - 1);
+        }
+        if (err.endsWith("\n")) {
+            err = err.substring(0, err.length() - 1);
+        }
 
         return new RunResults(out, err);
     }
