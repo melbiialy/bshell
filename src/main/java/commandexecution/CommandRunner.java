@@ -4,14 +4,10 @@ import builtincommands.CommandRegistry;
 import commandexecution.dto.RunResults;
 import exception.CommandNotFound;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class CommandRunner {
     private final CommandRegistry commandRegistry;
@@ -20,21 +16,22 @@ public class CommandRunner {
         this.commandRegistry = commandRegistry;
     }
 
+    /* =========================
+       Single command execution
+       ========================= */
     public RunResults run(List<String> tokens) throws IOException, InterruptedException {
-        if (CommandRegistry.containsCommand(tokens.getFirst())) {
+        if (CommandRegistry.containsCommand(tokens.get(0))) {
             String[] args = tokens.stream().skip(1).toArray(String[]::new);
-            return commandRegistry.getCommand(tokens.getFirst()).operate(args);
+            return commandRegistry.getCommand(tokens.get(0)).operate(args);
         }
+
         try {
-            boolean flag = false;
-            for (String s : tokens) {
-                if (s.contains("-f")) {
-                    flag = true;
-                }
-            }
+            boolean flag = tokens.stream().anyMatch(s -> s.contains("-f"));
+
             ProcessBuilder pb = new ProcessBuilder(tokens);
             pb.directory(BShell.path.getPath().toFile());
             Process process = pb.start();
+
             if (flag) {
                 Thread thread = new Thread(() -> {
                     try {
@@ -50,39 +47,31 @@ public class CommandRunner {
 
             process.waitFor();
 
-            String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            String err = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
-
-            if (err.isEmpty()) err = "";
-            else {
-                err = err.trim();
-            }
-            if (out.isEmpty()) out = "";
-            else {
-                out = out.trim();
-            }
+            String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+            String err = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8).trim();
 
             return new RunResults(out, err);
 
         } catch (IOException e) {
-            throw new CommandNotFound(tokens.getFirst() + ": command not found");
+            throw new CommandNotFound(tokens.get(0) + ": command not found");
         }
     }
 
-    public RunResults runResults(List<Command> commands)
-            throws IOException, InterruptedException {
-        boolean flag = false;
-        for (Command command : commands) {
-            if (CommandRegistry.containsCommand(command.getTokens().getFirst())) {
-                flag = true;
-                break;
-            }
+    /* =========================
+       Pipeline execution
+       ========================= */
+    public RunResults runResults(List<Command> commands) throws IOException, InterruptedException {
+        // check if any builtin exists
+        boolean hasBuiltin = commands.stream().anyMatch(c ->
+                CommandRegistry.containsCommand(c.getTokens().get(0))
+        );
 
+        if (hasBuiltin) {
+            return runIt(commands); // handle pipeline with builtins
         }
-        if (flag) return runIt(commands);
 
+        // No builtin -> original OS pipeline logic
         List<ProcessBuilder> builders = new ArrayList<>();
-
         for (Command command : commands) {
             ProcessBuilder pb = new ProcessBuilder(command.getTokens());
             pb.directory(BShell.path.getPath().toFile());
@@ -90,57 +79,67 @@ public class CommandRunner {
             builders.add(pb);
         }
 
-        builders.getFirst().redirectInput(ProcessBuilder.Redirect.INHERIT);
-        builders.getLast().redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        builders.get(0).redirectInput(ProcessBuilder.Redirect.INHERIT);
+        builders.get(builders.size() - 1).redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
         List<Process> processes = ProcessBuilder.startPipeline(builders);
-        processes.getLast().waitFor();
+        processes.get(processes.size() - 1).waitFor();
 
         return new RunResults("", "");
     }
+
+    /* =========================
+       Pipeline with builtin support
+       ========================= */
     private RunResults runIt(List<Command> commands) throws IOException, InterruptedException {
         InputStream currentInput = System.in;
         String lastStdout = "";
         String lastStderr = "";
         List<Command> osSegment = new ArrayList<>();
 
-        for (int i = 0; i < commands.size(); i++) {
-            Command cmd = commands.get(i);
+        for (Command cmd : commands) {
+            boolean isBuiltin = CommandRegistry.containsCommand(cmd.getTokens().get(0));
 
-            if (!CommandRegistry.containsCommand(cmd.getTokens().get(0))) {
+            if (!isBuiltin) {
                 osSegment.add(cmd);
                 continue;
             }
 
-            // ---- BUILTIN FOUND ----
-            // 1) run previous OS segment if any
+            // ---- RUN PREVIOUS OS SEGMENT ----
             if (!osSegment.isEmpty()) {
                 RunResults res = runOsPipeline(osSegment, currentInput);
                 lastStdout = res.output();
                 lastStderr = res.error();
-                currentInput = new ByteArrayInputStream(
-                        lastStdout.getBytes(StandardCharsets.UTF_8)
-                );
+                currentInput = new ByteArrayInputStream(lastStdout.getBytes(StandardCharsets.UTF_8));
                 osSegment.clear();
             }
 
-            // 2) run builtin
+            // ---- RUN BUILTIN ----
             RunResults builtinResult = commandRegistry
                     .getCommand(cmd.getTokens().get(0))
-                    .operate(
-                            cmd.getTokens()
-                                    .stream()
-                                    .skip(1)
-                                    .toArray(String[]::new)
-                    );
+                    .operate(cmd.getTokens().stream().skip(1).toArray(String[]::new));
 
-            lastStdout = builtinResult.output() + "\n";
-            lastStderr = builtinResult.error() + "\n";
+            lastStdout = builtinResult.output();
+            lastStderr = builtinResult.error();
 
-            // feed builtin output to next OS segment
-            currentInput = new ByteArrayInputStream(
-                    lastStdout.getBytes(StandardCharsets.UTF_8)
-            );
+            if (!lastStdout.isEmpty()) lastStdout += "\n";
+            if (!lastStderr.isEmpty()) lastStderr += "\n";
+
+            // Feed builtin output to next OS segment safely
+            PipedOutputStream pos = new PipedOutputStream();
+            PipedInputStream pis = new PipedInputStream(pos);
+            currentInput = pis;
+
+            String finalLastStdout = lastStdout;
+            Thread writerThread = new Thread(() -> {
+                try (OutputStream os = pos) {
+                    os.write(finalLastStdout.getBytes(StandardCharsets.UTF_8));
+                    os.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            writerThread.start();
         }
 
         // ---- FINAL OS SEGMENT ----
@@ -150,9 +149,9 @@ public class CommandRunner {
             lastStderr = res.error();
         }
 
-        // remove trailing newlines
-        while (lastStdout.endsWith("\n")) lastStdout = lastStdout.substring(0, lastStdout.length() - 1);
-        while (lastStderr.endsWith("\n")) lastStderr = lastStderr.substring(0, lastStderr.length() - 1);
+        // safe trim of trailing newlines
+        lastStdout = lastStdout.isEmpty() ? "" : lastStdout.replaceAll("\\n+$", "");
+        lastStderr = lastStderr.isEmpty() ? "" : lastStderr.replaceAll("\\n+$", "");
 
         return new RunResults(lastStdout, lastStderr);
     }
@@ -171,18 +170,15 @@ public class CommandRunner {
             builders.add(pb);
         }
 
-        // input redirection
         builders.get(0).redirectInput(
                 input == System.in ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.PIPE
         );
 
-        // output capture
         builders.get(builders.size() - 1).redirectOutput(ProcessBuilder.Redirect.PIPE);
 
         List<Process> processes = ProcessBuilder.startPipeline(builders);
         Process last = processes.get(processes.size() - 1);
 
-        // feed input if coming from builtin
         if (input != System.in) {
             try (OutputStream os = processes.get(0).getOutputStream()) {
                 input.transferTo(os);
@@ -194,11 +190,9 @@ public class CommandRunner {
         String out = new String(last.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         String err = new String(last.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
 
-        while (out.endsWith("\n")) out = out.substring(0, out.length() - 1);
-        while (err.endsWith("\n")) err = err.substring(0, err.length() - 1);
+        out = out.isEmpty() ? "" : out.replaceAll("\\n+$", "");
+        err = err.isEmpty() ? "" : err.replaceAll("\\n+$", "");
 
         return new RunResults(out, err);
     }
-
-
 }
