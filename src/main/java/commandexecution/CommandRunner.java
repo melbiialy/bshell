@@ -7,6 +7,7 @@ import exception.CommandNotFound;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -74,28 +75,68 @@ public class CommandRunner {
     public RunResults runResults(List<Command> commands)
             throws IOException, InterruptedException {
 
-        List<ProcessBuilder> builders = new ArrayList<>();
-
-        for (Command command : commands) {
-            ProcessBuilder pb = new ProcessBuilder(command.getTokens());
-            pb.directory(BShell.path.getPath().toFile());
-            pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-            builders.add(pb);
+        if (commands.isEmpty()) {
+            return new RunResults("", "");
         }
 
-        builders.getFirst()
-                .redirectInput(ProcessBuilder.Redirect.INHERIT);
+        String pipelineInput = null;
 
-        builders.getLast()
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        for (int i = 0; i < commands.size(); i++) {
+            Command command = commands.get(i);
+            boolean isLastCommand = (i == commands.size() - 1);
 
-        List<Process> processes =
-                ProcessBuilder.startPipeline(builders);
+            if (CommandRegistry.containsCommand(command.getTokens().getFirst())) {
+                // Handle built-in command
+                List<String> tokens = new ArrayList<>(command.getTokens());
 
-        processes.getLast().waitFor();
+                // If there's input from previous command, add it as an argument
+                if (pipelineInput != null && !pipelineInput.isEmpty()) {
+                    tokens.add(pipelineInput );
+                }
+
+                RunResults result = run(tokens);
+
+                if (isLastCommand) {
+                    // Last command - print and return
+                    return result;
+                } else {
+                    // Store output for next command
+                    pipelineInput = result.output() + "\n";
+                }
+
+            } else {
+                // Handle external command
+                ProcessBuilder pb = new ProcessBuilder(command.getTokens());
+                pb.directory(BShell.path.getPath().toFile());
+                pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+                Process process = pb.start();
+
+                // If there's input from previous command, write it to stdin
+                if (pipelineInput != null && !pipelineInput.isEmpty()) {
+                    try (var outputStream = process.getOutputStream()) {
+                        outputStream.write(pipelineInput.getBytes(StandardCharsets.UTF_8));
+                        outputStream.flush();
+                    }
+                }
+
+                if (isLastCommand) {
+                    // Last command - redirect output to console
+                    process.getInputStream().transferTo(System.out);
+                    process.waitFor();
+                    return new RunResults("", "");
+                } else {
+                    // Store output for next command
+                    process.waitFor();
+                    pipelineInput = new String(
+                            process.getInputStream().readAllBytes(),
+                            StandardCharsets.UTF_8
+                    );
+                }
+            }
+        }
 
         return new RunResults("", "");
     }
-
 
 }
