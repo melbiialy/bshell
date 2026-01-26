@@ -172,6 +172,6 @@ public class CommandRunner {
                 StandardCharsets.UTF_8
         );
 
-        return new RunResults(out.trim(), err.trim());
+        return new RunResults(out, err);
     }
 }
