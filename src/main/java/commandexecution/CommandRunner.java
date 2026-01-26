@@ -114,6 +114,12 @@ public class CommandRunner {
             lastStderr = res.error();
         }
 
+        while (lastStdout.endsWith("\n")) {
+            lastStdout = lastStdout.substring(0, lastStdout.length() - 1);
+        }
+        while (lastStderr.endsWith("\n")) {
+            lastStderr = lastStderr.substring(0, lastStderr.length() - 1);
+        }
         return new RunResults(lastStdout, lastStderr);
     }
 
@@ -171,10 +177,10 @@ public class CommandRunner {
                 last.getErrorStream().readAllBytes(),
                 StandardCharsets.UTF_8
         );
-        if (out.endsWith("\n")) {
+        while (out.endsWith("\n")) {
             out = out.substring(0, out.length() - 1);
         }
-        if (err.endsWith("\n")) {
+        while (err.endsWith("\n")) {
             err = err.substring(0, err.length() - 1);
         }
 
