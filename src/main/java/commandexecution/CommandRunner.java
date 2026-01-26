@@ -94,7 +94,7 @@ public class CommandRunner {
                 osSegment.clear();
             }
 
-            // 2) Run builtin with the current input
+            // 2) Run builtin
             RunResults builtinResult = commandRegistry
                     .getCommand(cmd.getTokens().getFirst())
                     .operate(cmd.getTokens().stream().skip(1).toArray(String[]::new));
@@ -102,7 +102,12 @@ public class CommandRunner {
             lastStdout = builtinResult.output();
             lastStderr = builtinResult.error();
 
-            // Feed builtin output to next OS segment if any
+            // Ensure newline at the end so downstream OS commands like 'wc' work correctly
+            if (!lastStdout.endsWith("\n")) {
+                lastStdout += "\n";
+            }
+
+            // Feed builtin output to next OS segment
             currentInput = new ByteArrayInputStream(lastStdout.getBytes(StandardCharsets.UTF_8));
         }
 
