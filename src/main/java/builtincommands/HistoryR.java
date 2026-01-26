@@ -10,14 +10,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class HistoryR implements BuiltInCommand{
+public class HistoryR extends BuiltInCommand{
 
     @Override
-    public RunResults operate(String... args) throws IOException, InterruptedException {
+    public void execute(String... args) throws IOException, InterruptedException {
         HistoryManager historyManager = HistoryManager.getInstance();
         BPath path = BPath.getInstance();
         if (args.length < 1) {
-            return new RunResults("", "history: missing operand");
+            this.getErrorStream().write("history: missing operand".getBytes());
         }
         Path filePath = path.getPath().resolve(args[0]);
         String line;
@@ -28,6 +28,6 @@ public class HistoryR implements BuiltInCommand{
             limit++;
         }
         historyManager.updatePublish(args[0], limit);
-        return new RunResults("", "");
+        reader.close();
     }
 }

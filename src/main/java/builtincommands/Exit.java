@@ -4,13 +4,12 @@ import commandexecution.dto.RunResults;
 
 import java.io.IOException;
 
-public class Exit implements BuiltInCommand{
+public class Exit extends BuiltInCommand{
     @Override
-    public RunResults operate(String... args) throws IOException, InterruptedException {
+    public void execute(String... args) throws IOException, InterruptedException {
         if (System.getenv("HISTFILE") != null) {
-            new HistoryAppend().operate(System.getenv("HISTFILE"));
+            new HistoryAppend().execute(System.getenv("HISTFILE"));
         }
         System.exit(0);
-        return null;
     }
 }

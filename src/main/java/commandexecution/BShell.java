@@ -31,7 +31,7 @@ public class BShell {
     public void start() throws IOException, InterruptedException {
         banner(lineInputHandler.getTerminal());
         if (System.getenv("HISTFILE") != null) {
-            new HistoryR().operate(System.getenv("HISTFILE"));
+            new HistoryR().execute(System.getenv("HISTFILE"));
         }
         while (true) {
             String input = lineInputHandler.handle();

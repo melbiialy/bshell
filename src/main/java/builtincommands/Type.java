@@ -1,18 +1,19 @@
 package builtincommands;
 
-import commandexecution.dto.RunResults;
 
 import java.io.IOException;
 
-public class Type implements BuiltInCommand {
+public class Type extends BuiltInCommand {
     @Override
-    public RunResults operate(String... args) throws IOException, InterruptedException {
+    public void execute(String... args) throws IOException, InterruptedException {
         if (args.length < 1) {
-            return new RunResults("type: missing operand", "");
+            this.getErrorStream().write("type: missing operand".getBytes());
+            return;
         }
         String commandName = args[0];
-        if (CommandRegistry.containsCommand(commandName)){
-            return new RunResults(commandName+" is a shell builtin", "");
+        if (isBuiltInCommand(commandName)) {
+            this.getOutputStream().write((commandName+" is a shell builtin\n").getBytes());
+            return;
         }
         String[] sysArgs = new String[]{"which", commandName};
         ProcessBuilder pb = new ProcessBuilder(sysArgs);
@@ -21,8 +22,21 @@ public class Type implements BuiltInCommand {
         String output = new String(process.getInputStream().readAllBytes());
         output = output.trim();
         if (output.isEmpty()) {
-            return new RunResults(commandName+": not found", "");
+            this.getErrorStream().write((commandName+" is not found").getBytes());
+            return;
         }
-        return new RunResults(commandName+" is "+ output, "");
+        this.getOutputStream().write((output+"\n").getBytes());
+    }
+
+    private boolean isBuiltInCommand(String commandName) {
+        String[] builtInCommands = {
+                "cd", "exit", "pwd", "echo", "history", "type"
+        };
+        for (String cmd : builtInCommands) {
+            if (cmd.equals(commandName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

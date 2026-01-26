@@ -7,10 +7,10 @@ import commandexecution.dto.RunResults;
 
 import java.io.IOException;
 
-public class Pwd implements BuiltInCommand {
+public class Pwd extends BuiltInCommand {
     @Override
-    public RunResults operate(String... args) throws IOException {
+    public void execute(String... args) throws IOException {
         BPath path = BPath.getInstance();
-        return new RunResults(path.getPath().toString(), "");
+        this.getOutputStream().write((path.getPath().toString()+"\n").getBytes());
     }
 }

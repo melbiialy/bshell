@@ -1,5 +1,6 @@
 package commandexecution.redirect;
 
+import commandexecution.BPath;
 import commandexecution.BShell;
 import commandexecution.dto.RunResults;
 
@@ -11,8 +12,9 @@ public class AppendRedirectStdout implements Redirect {
 
     @Override
     public void redirect(RunResults results, String fileName) {
+        BPath bPath = BPath.getInstance();
 
-            Path path = BShell.path.getPath().resolve(fileName);
+            Path path = bPath.getPath().resolve(fileName);
             String output = results.output();
             if (!results.output().isEmpty()){
                 output = "\n" + results.output();

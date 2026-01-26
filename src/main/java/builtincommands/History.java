@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class History implements BuiltInCommand{
+public class History extends BuiltInCommand{
     private final Map<String, BuiltInCommand> commands;
     public History() {
         this.commands = new HashMap<>();
@@ -23,25 +23,25 @@ public class History implements BuiltInCommand{
     }
 
     @Override
-    public RunResults operate(String... args) throws IOException, InterruptedException {
+    public void execute(String... args) throws IOException, InterruptedException {
         HistoryManager historyManager = HistoryManager.getInstance();
 
         int limit = historyManager.getHistorySize();
 
         if (args.length>1){
             if (commands.containsKey(args[0])){
-                return commands.get(args[0]).operate(args[1]);
+                 commands.get(args[0]).execute(args[1]);
             } else {
-                return new RunResults("", "history: invalid option " + args[0]);
+                this.getErrorStream().write(("history: unknown option: " + args[0]).getBytes());
             }
         } else if (args.length==1){
             try {
                 limit = Integer.parseInt(args[0]);
                 if (limit < 0) {
-                    return new RunResults("", "history: invalid number: " + args[0]);
+                    this.getErrorStream().write(("history: invalid number: " + args[0]).getBytes());
                 }
             } catch (NumberFormatException e) {
-                return new RunResults("", "history: invalid number: " + args[0]);
+                this.getErrorStream().write(("history: invalid number: " + args[0]).getBytes());
             }
         }
 
@@ -50,6 +50,6 @@ public class History implements BuiltInCommand{
                 .reduce("",
                         (a, b) -> (a +"    "+ b) + "\n");
         history = history.trim();
-        return new RunResults(history, "");
+        this.getOutputStream().write(history.getBytes());
     }
 }

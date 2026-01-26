@@ -5,15 +5,25 @@ import commandexecution.BShell;
 import commandexecution.dto.RunResults;
 
 import java.io.IOException;
+import java.util.Arrays;
 
-public class Cd implements BuiltInCommand {
+public class Cd extends BuiltInCommand {
+
     @Override
-    public RunResults operate(String... args) throws IOException {
+    public void execute(String... args) throws IOException, InterruptedException {
         BPath path = BPath.getInstance();
-        if (args.length < 1) {
-            return new RunResults("cd: missing operand","");
+        String targetPath;
+        if (args.length == 0) {
+            targetPath = this.getInputStream().toString();
+            path.moveTo(targetPath);
         }
-        path.moveTo(args[0]);
-        return new RunResults("","");
+        if (args.length == 1) {
+            targetPath = args[0];
+            path.moveTo(targetPath);
+        } else {
+            String errorMessage = "cd: too many arguments";
+            this.getErrorStream().write(errorMessage.getBytes());
+        }
+
     }
 }

@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class HistoryW implements BuiltInCommand{
+public class HistoryW extends BuiltInCommand{
     @Override
-    public RunResults operate(String... args) throws IOException, InterruptedException {
+    public void execute(String... args) throws IOException, InterruptedException {
         HistoryManager historyManager = HistoryManager.getInstance();
         if (args.length <1){
-            return new RunResults("", "history: missing operand");
+            this.getErrorStream().write("history: missing operand".getBytes());
         }
         String filePath = args[0];
         Path path = Path.of(filePath);
@@ -22,6 +22,5 @@ public class HistoryW implements BuiltInCommand{
                 .reduce("",
                         (a, b) -> (a + b) + "\n"));
         historyManager.updatePublish(filePath, historyManager.getHistorySize());
-        return new RunResults("", "");
     }
 }

@@ -6,6 +6,7 @@ import commandexecution.dto.Token;
 
 import java.io.IOException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,10 +19,10 @@ public class CommandExecutor {
         this.redirectHandler = new RedirectHandler();
     }
 
-    public void execute(List<Token> tokens) throws IOException, InterruptedException {
+    public void execute(List<Token> tokens) throws IOException, InterruptedException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         Command command = redirectHandler.handle(tokens,0);
 
-        RunResults output;
+        RunResults output = null;
         List<Command> commands = new ArrayList<>();
         commands.add(command);
         while (command.getChild() != null) {
@@ -29,13 +30,7 @@ public class CommandExecutor {
             command = command.getChild();
             commands.add(command);
         }
-        if (commands.size() == 1){
-            output = commandRunner.run(commands.getFirst().getTokens());
-        } else if (commands.size() > 1) {
-            output = commandRunner.runResults(commands);
-        } else {
-            output = commandRunner.run(command.getTokens());
-        }
+        output = commandRunner.run(commands);
 
         command.redirect(output);
     }

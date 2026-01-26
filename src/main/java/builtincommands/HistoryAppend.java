@@ -8,12 +8,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class HistoryAppend implements BuiltInCommand{
+public class HistoryAppend extends BuiltInCommand{
     @Override
-    public RunResults operate(String... args) throws IOException, InterruptedException {
+    public void execute(String... args) throws IOException, InterruptedException {
         HistoryManager historyManager = HistoryManager.getInstance();
         if (args.length < 1) {
-            return new RunResults("", "history: missing operand");
+            this.getErrorStream().write("history: missing operand".getBytes());
         }
         String filePath = args[0];
         int startIndex = 0;
@@ -30,6 +30,5 @@ public class HistoryAppend implements BuiltInCommand{
                 java.nio.file.StandardOpenOption.CREATE,
                 java.nio.file.StandardOpenOption.APPEND);
         historyManager.updatePublish(filePath, historyManager.getHistorySize());
-        return new RunResults("", "");
     }
 }
