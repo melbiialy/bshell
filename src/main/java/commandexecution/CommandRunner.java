@@ -75,68 +75,31 @@ public class CommandRunner {
     public RunResults runResults(List<Command> commands)
             throws IOException, InterruptedException {
 
-        if (commands.isEmpty()) {
-            return new RunResults("", "");
-        }
+        List<ProcessBuilder> builders = new ArrayList<>();
 
-        String pipelineInput = null;
 
-        for (int i = 0; i < commands.size(); i++) {
-            Command command = commands.get(i);
-            boolean isLastCommand = (i == commands.size() - 1);
+        for (Command command : commands) {
 
-            if (CommandRegistry.containsCommand(command.getTokens().getFirst())) {
-                // Handle built-in command
-                List<String> tokens = new ArrayList<>(command.getTokens());
-
-                // If there's input from previous command, add it as an argument
-                if (pipelineInput != null && !pipelineInput.isEmpty()) {
-                    tokens.add(pipelineInput );
-                }
-
-                RunResults result = run(tokens);
-
-                if (isLastCommand) {
-                    // Last command - print and return
-                    return result;
-                } else {
-                    // Store output for next command
-                    pipelineInput = result.output() + "\n";
-                }
-
-            } else {
-                // Handle external command
                 ProcessBuilder pb = new ProcessBuilder(command.getTokens());
                 pb.directory(BShell.path.getPath().toFile());
                 pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
-                Process process = pb.start();
-
-                // If there's input from previous command, write it to stdin
-                if (pipelineInput != null && !pipelineInput.isEmpty()) {
-                    try (var outputStream = process.getOutputStream()) {
-                        outputStream.write(pipelineInput.getBytes(StandardCharsets.UTF_8));
-                        outputStream.flush();
-                    }
-                }
-
-                if (isLastCommand) {
-                    // Last command - redirect output to console
-                    process.getInputStream().transferTo(System.out);
-                    process.waitFor();
-                    return new RunResults("", "");
-                } else {
-                    // Store output for next command
-                    process.waitFor();
-                    pipelineInput = new String(
-                            process.getInputStream().readAllBytes(),
-                            StandardCharsets.UTF_8
-                    );
-                }
+                builders.add(pb);
             }
-        }
+
+
+        builders.getFirst()
+                .redirectInput(ProcessBuilder.Redirect.INHERIT);
+
+        builders.getLast()
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT);
+
+        List<Process> processes =
+                ProcessBuilder.startPipeline(builders);
+
+        processes.getLast().waitFor();
 
         return new RunResults("", "");
     }
+
 
 }
