@@ -14,7 +14,6 @@ import org.jline.utils.InfoCmp;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-// todo refactor this
 public class JLineHandler implements LineInputHandler {
     private final LineReader reader;
     private final Terminal terminal;
@@ -43,5 +42,10 @@ public class JLineHandler implements LineInputHandler {
             terminal.flush();
         }
         return input;
+    }
+
+    @Override
+    public Terminal getTerminal() {
+        return terminal;
     }
 }
