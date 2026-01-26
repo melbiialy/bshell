@@ -20,33 +20,41 @@ public class CommandRunner {
     /* =========================
        Single command execution
        ========================= */
-
-    public RunResults run(List<String> tokens)
-            throws IOException, InterruptedException {
-
+    public RunResults run(List<String> tokens) throws IOException, InterruptedException {
         if (CommandRegistry.containsCommand(tokens.getFirst())) {
             String[] args = tokens.stream().skip(1).toArray(String[]::new);
-            return commandRegistry
-                    .getCommand(tokens.getFirst())
-                    .operate(args);
+            return commandRegistry.getCommand(tokens.getFirst()).operate(args);
         }
 
         try {
+            boolean flag = false;
+            for (String s : tokens) {
+                if (s.contains("-f")) {
+                    flag = true;
+                }
+            }
+
             ProcessBuilder pb = new ProcessBuilder(tokens);
             pb.directory(BShell.path.getPath().toFile());
-
             Process process = pb.start();
+
+            if (flag) {
+                Thread thread = new Thread(() -> {
+                    try {
+                        process.getInputStream().transferTo(System.out);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                thread.start();
+                thread.join();
+                return new RunResults("", "");
+            }
+
             process.waitFor();
 
-            String out = new String(
-                    process.getInputStream().readAllBytes(),
-                    StandardCharsets.UTF_8
-            ).trim();
-
-            String err = new String(
-                    process.getErrorStream().readAllBytes(),
-                    StandardCharsets.UTF_8
-            ).trim();
+            String out = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+            String err = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8).trim();
 
             return new RunResults(out, err);
 
@@ -56,11 +64,9 @@ public class CommandRunner {
     }
 
     /* =========================
-       Pipeline execution
+       Pipeline execution with builtin support
        ========================= */
-
-    public RunResults runResults(List<Command> commands)
-            throws IOException, InterruptedException {
+    public RunResults runResults(List<Command> commands) throws IOException, InterruptedException {
 
         InputStream currentInput = System.in;
         String lastStdout = "";
@@ -68,43 +74,36 @@ public class CommandRunner {
 
         List<Command> osSegment = new ArrayList<>();
 
-        for (int i = 0; i < commands.size(); i++) {
-            Command cmd = commands.get(i);
+        for (Command cmd : commands) {
+            boolean isBuiltin = CommandRegistry.containsCommand(cmd.getTokens().getFirst());
 
-            if (!CommandRegistry.containsCommand(cmd.getTokens().getFirst())) {
+            if (!isBuiltin) {
                 osSegment.add(cmd);
                 continue;
             }
 
             // ---- BUILTIN FOUND ----
-            // 1) run previous OS segment
+            // 1) Run previous OS segment if there is one
             if (!osSegment.isEmpty()) {
                 RunResults res = runOsPipeline(osSegment, currentInput);
                 lastStdout = res.output();
                 lastStderr = res.error();
-                currentInput = new ByteArrayInputStream(
-                        lastStdout.getBytes(StandardCharsets.UTF_8)
-                );
+
+                // Feed output to builtin
+                currentInput = new ByteArrayInputStream(lastStdout.getBytes(StandardCharsets.UTF_8));
                 osSegment.clear();
             }
 
-            // 2) run builtin
-            RunResults builtinResult =
-                    commandRegistry
-                            .getCommand(cmd.getTokens().getFirst())
-                            .operate(
-                                    cmd.getTokens()
-                                            .stream()
-                                            .skip(1)
-                                            .toArray(String[]::new)
-                            );
+            // 2) Run builtin with the current input
+            RunResults builtinResult = commandRegistry
+                    .getCommand(cmd.getTokens().getFirst())
+                    .operate(cmd.getTokens().stream().skip(1).toArray(String[]::new));
 
-            lastStdout = builtinResult.output()+"\n";
-            lastStderr = builtinResult.error()+"\n";
+            lastStdout = builtinResult.output();
+            lastStderr = builtinResult.error();
 
-            currentInput = new ByteArrayInputStream(
-                    lastStdout.getBytes(StandardCharsets.UTF_8)
-            );
+            // Feed builtin output to next OS segment if any
+            currentInput = new ByteArrayInputStream(lastStdout.getBytes(StandardCharsets.UTF_8));
         }
 
         // ---- FINAL OS SEGMENT ----
@@ -114,75 +113,49 @@ public class CommandRunner {
             lastStderr = res.error();
         }
 
-        while (lastStdout.endsWith("\n")) {
-            lastStdout = lastStdout.substring(0, lastStdout.length() - 1);
-        }
-        while (lastStderr.endsWith("\n")) {
-            lastStderr = lastStderr.substring(0, lastStderr.length() - 1);
-        }
+        // ---- strip trailing newlines ----
+        while (lastStdout.endsWith("\n")) lastStdout = lastStdout.substring(0, lastStdout.length() - 1);
+        while (lastStderr.endsWith("\n")) lastStderr = lastStderr.substring(0, lastStderr.length() - 1);
+
         return new RunResults(lastStdout, lastStderr);
     }
 
     /* =========================
-       OS-only pipeline runner
+       OS-only pipeline runner (original logic)
        ========================= */
-
-    private RunResults runOsPipeline(
-            List<Command> commands,
-            InputStream input
-    ) throws IOException, InterruptedException {
+    private RunResults runOsPipeline(List<Command> commands, InputStream input) throws IOException, InterruptedException {
 
         List<ProcessBuilder> builders = new ArrayList<>();
-
         for (Command command : commands) {
-            ProcessBuilder pb =
-                    new ProcessBuilder(command.getTokens());
+            ProcessBuilder pb = new ProcessBuilder(command.getTokens());
             pb.directory(BShell.path.getPath().toFile());
             pb.redirectError(ProcessBuilder.Redirect.PIPE);
             builders.add(pb);
         }
 
         // input redirection
-        builders.getFirst().redirectInput(
-                input == System.in
-                        ? ProcessBuilder.Redirect.INHERIT
-                        : ProcessBuilder.Redirect.PIPE
-        );
+        builders.get(0).redirectInput(input == System.in ? ProcessBuilder.Redirect.INHERIT : ProcessBuilder.Redirect.PIPE);
 
         // output capture
-        builders.getLast().redirectOutput(
-                ProcessBuilder.Redirect.PIPE
-        );
+        builders.get(builders.size() - 1).redirectOutput(ProcessBuilder.Redirect.PIPE);
 
-        List<Process> processes =
-                ProcessBuilder.startPipeline(builders);
-
-        Process last = processes.getLast();
+        List<Process> processes = ProcessBuilder.startPipeline(builders);
+        Process last = processes.get(processes.size() - 1);
 
         // feed input if coming from builtin
         if (input != System.in) {
-            try (OutputStream os = processes.getFirst().getOutputStream()) {
+            try (OutputStream os = processes.get(0).getOutputStream()) {
                 input.transferTo(os);
             }
         }
 
         last.waitFor();
 
-        String out = new String(
-                last.getInputStream().readAllBytes(),
-                StandardCharsets.UTF_8
-        );
+        String out = new String(last.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String err = new String(last.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
 
-        String err = new String(
-                last.getErrorStream().readAllBytes(),
-                StandardCharsets.UTF_8
-        );
-        while (out.endsWith("\n")) {
-            out = out.substring(0, out.length() - 1);
-        }
-        while (err.endsWith("\n")) {
-            err = err.substring(0, err.length() - 1);
-        }
+        while (out.endsWith("\n")) out = out.substring(0, out.length() - 1);
+        while (err.endsWith("\n")) err = err.substring(0, err.length() - 1);
 
         return new RunResults(out, err);
     }
