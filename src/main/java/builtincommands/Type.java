@@ -25,7 +25,7 @@ public class Type extends BuiltInCommand {
             this.getErrorStream().write((commandName+" is not found").getBytes());
             return;
         }
-        this.getOutputStream().write((output+"\n").getBytes());
+        this.getOutputStream().write((args[0]+" is "+output+"\n").getBytes());
     }
 
     private boolean isBuiltInCommand(String commandName) {

@@ -11,7 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import java.util.ArrayList;
 import java.util.List;
-// todo refactor this
 public class CommandRunner {
     private final CommandRegistry commandRegistry;
 
