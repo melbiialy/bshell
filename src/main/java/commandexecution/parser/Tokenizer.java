@@ -1,12 +1,13 @@
-package commandexecution;
+package commandexecution.parser;
 
 import commandexecution.dto.Token;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Tokenizer {
-    public static List<Token> tokenize(String input) {
+public class Tokenizer implements Parser {
+    @Override
+    public List<Token> parse(String input) {
         List<Token> tokens = new ArrayList<>();
         boolean inSingleQuotes = false;
         boolean inDoubleQuotes = false;
