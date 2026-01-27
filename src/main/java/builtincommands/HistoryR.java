@@ -7,13 +7,14 @@ import history.HistoryManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class HistoryR extends BuiltInCommand{
 
     @Override
-    public void execute(String... args) throws IOException, InterruptedException {
+    public void execute(PipedOutputStream outputStream,String... args) throws IOException, InterruptedException {
         HistoryManager historyManager = HistoryManager.getInstance();
         BPath path = BPath.getInstance();
         if (args.length < 1) {

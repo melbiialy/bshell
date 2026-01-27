@@ -10,6 +10,8 @@ import history.HistoryManager;
 import org.jline.terminal.Terminal;
 
 import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.List;
 
 
@@ -31,7 +33,7 @@ public class BShell {
     public void start() throws IOException, InterruptedException {
         banner(lineInputHandler.getTerminal());
         if (System.getenv("HISTFILE") != null) {
-            new HistoryR().execute(System.getenv("HISTFILE"));
+            new HistoryR().execute(new PipedOutputStream(),System.getenv("HISTFILE"));
         }
         while (true) {
             String input = lineInputHandler.handle();

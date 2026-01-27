@@ -40,5 +40,5 @@ public abstract class BuiltInCommand {
     public void setErrorStream(OutputStream errorStream) {
         this.errorStream = errorStream;
     }
-    public abstract void execute(String... args) throws IOException, InterruptedException;
+    public abstract void execute(PipedOutputStream outputStream, String... args) throws IOException, InterruptedException;
 }

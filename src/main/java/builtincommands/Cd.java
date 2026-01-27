@@ -5,12 +5,15 @@ import commandexecution.BShell;
 import commandexecution.dto.RunResults;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.Arrays;
 
 public class Cd extends BuiltInCommand {
 
     @Override
-    public void execute(String... args) throws IOException, InterruptedException {
+    public void execute(PipedOutputStream pipedOutputStream, String... args) throws IOException, InterruptedException {
         BPath path = BPath.getInstance();
         String targetPath;
         if (args.length == 0) {

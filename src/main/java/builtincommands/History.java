@@ -6,6 +6,7 @@ import history.HistoryManager;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -23,14 +24,14 @@ public class History extends BuiltInCommand{
     }
 
     @Override
-    public void execute(String... args) throws IOException, InterruptedException {
+    public void execute(PipedOutputStream outputStream,String... args) throws IOException, InterruptedException {
         HistoryManager historyManager = HistoryManager.getInstance();
 
         int limit = historyManager.getHistorySize();
 
         if (args.length>1){
             if (commands.containsKey(args[0])){
-                 commands.get(args[0]).execute(args[1]);
+                 commands.get(args[0]).execute(outputStream,args[1]);
             } else {
                 this.getErrorStream().write(("history: unknown option: " + args[0]).getBytes());
             }
@@ -50,6 +51,6 @@ public class History extends BuiltInCommand{
                 .reduce("",
                         (a, b) -> (a +"    "+ b) + "\n");
         history = history.trim();
-        this.getOutputStream().write(history.getBytes());
+        outputStream.write(history.getBytes());
     }
 }

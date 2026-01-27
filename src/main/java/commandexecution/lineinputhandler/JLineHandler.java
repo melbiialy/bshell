@@ -1,5 +1,6 @@
 package commandexecution.lineinputhandler;
 
+import commandexecution.BPath;
 import commandexecution.autocompletion.BuiltinCompleter;
 import commandexecution.autocompletion.SystemCommandsCompleter;
 import org.jline.reader.Completer;
@@ -9,6 +10,8 @@ import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.completer.AggregateCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp;
 
 import java.io.IOException;
@@ -34,7 +37,19 @@ public class JLineHandler implements LineInputHandler {
     }
     @Override
     public String handle() {
-        String input =reader.readLine("$ ");
+        BPath bPath = BPath.getInstance();
+        terminal.writer().print(
+                new AttributedString(System.getenv("USER"),AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN).bold()).toAnsi()
+                +new AttributedString(
+                        bPath.getPath().toString(),
+                        AttributedStyle.DEFAULT.foreground(AttributedStyle.BLUE)
+                                .bold()
+                ).toAnsi() + new AttributedString(" $ ",
+                        AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN
+                        ).bold()).toAnsi()
+        );
+        terminal.writer().flush();
+        String input = reader.readLine();
         if (input.equals("clear")){
             terminal.puts(InfoCmp.Capability.clear_screen);
             terminal.puts(InfoCmp.Capability.cursor_home);

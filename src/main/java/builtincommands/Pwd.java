@@ -6,11 +6,12 @@ import commandexecution.BShell;
 import commandexecution.dto.RunResults;
 
 import java.io.IOException;
+import java.io.PipedOutputStream;
 
 public class Pwd extends BuiltInCommand {
     @Override
-    public void execute(String... args) throws IOException {
+    public void execute(PipedOutputStream outputStream,String... args) throws IOException {
         BPath path = BPath.getInstance();
-        this.getOutputStream().write((path.getPath().toString()+"\n").getBytes());
+        outputStream.write(path.getPath().toString().getBytes());
     }
 }

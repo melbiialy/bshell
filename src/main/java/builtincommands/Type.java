@@ -2,17 +2,18 @@ package builtincommands;
 
 
 import java.io.IOException;
+import java.io.PipedOutputStream;
 
 public class Type extends BuiltInCommand {
     @Override
-    public void execute(String... args) throws IOException, InterruptedException {
+    public void execute(PipedOutputStream outputStream,String... args) throws IOException, InterruptedException {
         if (args.length < 1) {
             this.getErrorStream().write("type: missing operand".getBytes());
             return;
         }
         String commandName = args[0];
         if (isBuiltInCommand(commandName)) {
-            this.getOutputStream().write((commandName+" is a shell builtin\n").getBytes());
+            outputStream.write(("type: "+commandName+" is a shell builtin command").getBytes());
             return;
         }
         String[] sysArgs = new String[]{"which", commandName};
@@ -25,7 +26,7 @@ public class Type extends BuiltInCommand {
             this.getErrorStream().write((commandName+" is not found").getBytes());
             return;
         }
-        this.getOutputStream().write((args[0]+" is "+output+"\n").getBytes());
+        outputStream.write(("type: "+commandName+" is "+output+"\n").getBytes());
     }
 
     private boolean isBuiltInCommand(String commandName) {

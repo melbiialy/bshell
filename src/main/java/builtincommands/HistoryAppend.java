@@ -4,13 +4,14 @@ import commandexecution.dto.RunResults;
 import history.HistoryManager;
 
 import java.io.IOException;
+import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class HistoryAppend extends BuiltInCommand{
     @Override
-    public void execute(String... args) throws IOException, InterruptedException {
+    public void execute(PipedOutputStream outputStream,String... args) throws IOException, InterruptedException {
         HistoryManager historyManager = HistoryManager.getInstance();
         if (args.length < 1) {
             this.getErrorStream().write("history: missing operand".getBytes());
