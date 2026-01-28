@@ -11,6 +11,7 @@ import org.jline.reader.impl.completer.AggregateCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp;
 
@@ -38,18 +39,17 @@ public class JLineHandler implements LineInputHandler {
     @Override
     public String handle() {
         BPath bPath = BPath.getInstance();
-        terminal.writer().print(
-                new AttributedString(System.getenv("USER"),AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN).bold()).toAnsi()
-                +new AttributedString(
-                        bPath.getPath().toString(),
-                        AttributedStyle.DEFAULT.foreground(AttributedStyle.BLUE)
-                                .bold()
-                ).toAnsi() + new AttributedString(" $ ",
-                        AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN
-                        ).bold()).toAnsi()
-        );
-        terminal.writer().flush();
-        String input = reader.readLine();
+        String prompt = new AttributedStringBuilder()
+                .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN).bold())
+                .append(System.getenv("USER"))
+                .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.BLUE).bold())
+                .append(bPath.getPath().toString())
+                .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN).bold())
+                .append(" $ ")
+                .toAnsi();
+
+
+        String input = reader.readLine(prompt);
         if (input.equals("clear")){
             terminal.puts(InfoCmp.Capability.clear_screen);
             terminal.puts(InfoCmp.Capability.cursor_home);
