@@ -1,118 +1,202 @@
-## BShell
+# BShell
 
-`BShell` is a lightweight, POSIX-style command-line shell implemented in Java.  
-It executes external commands, provides several built-in commands, maintains command history, and supports basic output redirection.  
-The project is developed as a personal side project to deepen understanding of how Unix-like shells work internally.
+<p align="center">
+  <strong>A lightweight, POSIX-style shell written in Java</strong>
+</p>
+
+<p align="center">
+  Built to explore how Unix shells work — from parsing and tokenization to process execution and redirection.
+</p>
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Limitations & Roadmap](#limitations--roadmap)
+- [Contributing](#contributing)
+
+---
+
+## Overview
+
+**BShell** is a minimal but fully interactive command-line shell implemented in Java. It supports external program execution, pipelines, built-in commands, output redirection, full quoting and escaping, command history with persistence, and tab completion — all with a clean, modular codebase designed for learning and extension.
+
+Whether you're curious how shells parse commands, spawn processes, or handle I/O redirection, BShell offers a readable reference implementation without the complexity of bash or zsh.
+
+---
 
 ## Features
 
-- **Built-in commands**
-  - `cd`, `pwd`, `echo`, `type`, `exit`
-  - History-related commands: `history`, `history -w`, `history -a`, `history -r`
-- **External command execution**
-  - Executes programs available on the system `PATH`
-- **Output redirection**
-  - Redirects `stdout` and `stderr`, including append variants (`>`, `>>`, `2>`, `2>>`)
-- **Command parsing**
-  - Tokenization and parsing of simple shell commands
-- **Interactive shell**
-  - Read–eval–print loop with line editing support (via JLine)
-- **Autocompletion**
-  - Completion for built-in commands and commands discovered on `PATH`
+| Category | Capabilities |
+|----------|--------------|
+| **Built-ins** | `cd`, `pwd`, `echo`, `type`, `exit` |
+| **History** | `history`, `history -w`, `history -a`, `history -r` with file persistence |
+| **Execution** | Run any program on your `PATH` |
+| **Pipelines** | Chain commands with `\|` (e.g. `ls \| grep foo`) |
+| **Redirection** | `>`, `>>`, `2>`, `2>>` for stdout and stderr |
+| **Quoting** | Full support for single quotes, double quotes, and escaping |
+| **Interactivity** | Readline-style editing, history navigation, **tab completion** (built-ins + PATH commands) |
+| **Parsing** | Tokenization and command structure parsing |
 
-## Technology Stack
+---
 
-- **Language**: Java  
-- **Build tool**: Maven  
-- **Libraries**:
-  - JLine – line editing, history, and completion support
+## Quick Start
 
-## Getting Started
+**Prerequisites:** Java 23+ (or adjust `pom.xml`), Maven
 
-- **Prerequisites**
-  - Java 17 or later (or the version configured in `pom.xml`)
-  - Maven (`mvn`)
+```bash
+# Clone and enter the project
+git clone https://github.com/<your-username>/codecrafters-shell-java.git
+cd codecrafters-shell-java
 
-- **Clone the repository**
-
-```sh
-git clone https://github.com/<your-username>/<your-repo-name>.git
-cd <your-repo-name>
-```
-
-- **Build**
-
-```sh
+# Build
 mvn clean package
+
+# Run BShell
+./bshell.sh
 ```
 
-- **Run**
+Or run via Maven:
 
-Using the helper script:
-
-```sh
-./your_program.sh
-```
-
-Or by running the main class directly via Maven:
-
-```sh
+```bash
 mvn exec:java -Dexec.mainClass="Main"
 ```
 
+---
+
 ## Usage
 
-After starting the shell, commands can be executed similarly to a standard POSIX shell.
+Once BShell is running, use it like a typical Unix shell:
 
-- **External commands**
+**External commands**
 
-```sh
+```bash
 ls -la
 grep "pattern" file.txt
+cat /etc/os-release
 ```
 
-- **Built-in commands**
+**Built-in commands**
 
-```sh
+```bash
 cd /tmp
 pwd
 echo "Hello from BShell"
-type cd
+type cd          # shows whether cd is built-in or external
 exit
 ```
 
-- **History commands**
+**History (with file persistence)**
 
-```sh
-history        # display command history
-history -w     # write history to file
-history -a     # append new entries to history file
-history -r     # reload history from file
+```bash
+history          # show command history
+history -w       # write history to file
+history -a       # append new entries to history file
+history -r       # reload history from file
 ```
 
-- **Redirection examples**
+**Pipelines**
 
-```sh
+```bash
+ls -la | grep ".txt"
+cat file.txt | wc -l
+ps aux | head -5
+```
+
+**Output redirection**
+
+```bash
 echo "log line" > out.log
 echo "another line" >> out.log
 ls missing-file 2> errors.log
 ls missing-file 2>> errors.log
 ```
 
-## Project Structure
+**Quoting and escaping**
 
-- `src/main/java/Main.java` – Application entry point.  
-- `src/main/java/commandexecution/BShell.java` – Main shell loop and orchestration.  
-- `src/main/java/commandexecution/CommandExecutor.java` – Process execution and I/O wiring.  
-- `src/main/java/commandexecution/parser` – Command tokenization and parsing.  
-- `src/main/java/builtincommands` – Implementations of built-in commands (`cd`, `echo`, `pwd`, `type`, `exit`, history commands, etc.).  
-- `src/main/java/commandexecution/redirect` – Output redirection handling (`>`, `>>`, `2>`, `2>>`).  
-- `src/main/java/history` – Command history management and persistence.  
-- `src/main/java/exception` – Custom exception types for shell-specific errors.  
+```bash
+echo 'single quoted $var stays literal'
+echo "double quoted $HOME expands"
+echo "escape \"quotes\" and newlines\n"
+```
 
-## Design Overview
+---
 
-- **Separation of concerns**: Parsing, execution, built-ins, redirection, and history are organized into dedicated packages.  
-- **Extensibility**: New built-in commands can be added by implementing `BuiltInCommand` and registering them in `CommandRegistry`.  
-- **Testability**: Core execution logic is separated from user input handling, simplifying testing of parsing and execution behavior.
+## Architecture
 
+```
+src/main/java/
+├── Main.java                    # Entry point
+├── commandexecution/
+│   ├── BShell.java              # Main REPL loop, orchestration
+│   ├── CommandExecutor.java     # Process spawn & I/O wiring
+│   ├── CommandRunner.java       # Execution orchestration
+│   ├── Command.java             # Parsed command representation
+│   ├── RedirectHandler.java     # Redirection setup
+│   ├── parser/                  # Tokenizer, Parser
+│   ├── redirect/                # >, >>, 2>, 2>> implementations
+│   ├── autocompletion/          # Tab completion (builtins + PATH)
+│   └── lineinputhandler/        # JLine-based input handling
+├── builtincommands/             # cd, echo, pwd, type, exit, history variants
+├── history/                     # HistoryManager, HistoryStorage
+└── exception/                   # Shell-specific exceptions
+```
+
+**Design principles**
+
+- **Separation of concerns** — Parsing, execution, built-ins, redirection, and history live in dedicated packages.
+- **Extensibility** — Add built-ins by implementing `BuiltInCommand` and registering them in `CommandRegistry`.
+
+---
+
+## Development
+
+**Build JAR with dependencies**
+
+```bash
+mvn clean package
+# Produces target/codecrafters-shell.jar (or via assembly in /tmp)
+```
+
+**Debugging** — Add logging in `BShell` or `CommandExecutor` to trace command parsing and execution.
+
+---
+
+## Limitations & Roadmap
+
+**Current limitations**
+
+- No command chaining (`&&`, `||`, `;`)
+- No background jobs (`&`), job control (`fg`, `bg`)
+- No shell variables, conditionals, loops, or functions
+
+**Possible next steps**
+
+- [ ] Command chaining (`&&`, `||`, `;`)
+- [ ] Configurable history file location and size
+- [ ] Additional built-ins (`which`, `alias`, `unalias`, `set`)
+
+---
+
+## Contributing
+
+Contributions, ideas, and bug reports are welcome.
+
+**Reporting issues** — Please include:
+- The exact command you ran
+- What BShell did
+- What you expected (e.g., compared to bash)
+
+**Pull requests** — Keep changes focused.
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
